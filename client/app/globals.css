@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .light {
+  --background: #ffffff;
+  --foreground: #1F2432;
+  --active: #3B5BFF;
+  --border: #d1d5db;
+  --muted: #6b7280;
+  --gradient-start: #DCE1F2;
+  --gradient-end: #85A3FF;
+}
+}
+
+
+:root {
+  --background: #1F2432;
+  --foreground: #ededed;
+  --active: #85A3FF;
+  --border: #374151;
+  --muted: #9ca3af;
+  --gradient-start: #85A3FF;
+  --gradient-end: #DCE1F2;
+  --white: #ffffff;
+  --black: #000000;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-active: var(--active);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-gradient-start: var(--gradient-start);
+  --color-gradient-end: var(--gradient-end);
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Graphik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
