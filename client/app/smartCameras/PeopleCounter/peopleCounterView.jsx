@@ -4,6 +4,8 @@ import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import TrafficStatus from '@/app/components/TrafficStatus/main';
 import LineGraph from '@/app/components/Graph/main';
 import { Shield } from 'lucide-react';
+import LiveFeed from '@/app/components/LiveFeedCamera/main';
+
 
 const PeopleCounterView = () => {
   const hourlyDetectionData = [
@@ -20,6 +22,14 @@ const PeopleCounterView = () => {
     { time: "0:00", count: 8 },
     { time: "2:00", count: 3 }
   ];
+  //update this part when actual integration happen
+  const monitoredPlaces = [
+    { id: 1, streamUrl: "sampleImage1.png", alt: "Entrance 1" },
+    { id: 2, streamUrl: "sampleImage2.png", alt: "Entrance 2" },
+    { id: 3, streamUrl: "sampleImage3.png", alt: "Entrance 3" },
+    { id: 4, streamUrl: "sampleImage4.png", alt: "Entrance 4" },
+    { id: 5, streamUrl: "sampleImage5.png", alt: "Entrance 5" },
+  ];
   return (
     <div>
       <div className="space-y-6 mb-8">
@@ -32,8 +42,9 @@ const PeopleCounterView = () => {
             </div>
             <div className='absolute top-4 right-4 cursor-pointer'><img src="zoomOut.svg" alt="zoom out" /></div>
 
-            {/* change this image path when actual integration of camera feed is happening */}
-            <img src="sampleImage1.png" alt="North Entrance" className='h-full'/>
+            {/* uncomment this when actual camera feed is using then apply stream URL then remove image source below */}
+            {/* <LiveFeed streamUrl="back end camera url" /> */}
+            <img src="sampleImage1.png" alt="North Entrance" className='h-full' />
 
           </div>
           <div className="w-[60%] py-4">
@@ -73,36 +84,47 @@ const PeopleCounterView = () => {
         </div>
 
         {/* Second Row - Key Monitored Places */}
-        <div>
-          <h2 className="text-foreground text-[16px] font-medium mb-4">Key Monitored Places</h2>
-          <div className="grid grid-cols-5 gap-4">
-            {Array.from({ length: 4 }).map((_, idx) => (
-              <div key={idx} className="relative rounded-lg overflow-hidden min-h-[150px]">
-                <div
-                  className=""
-                >
+        <div className='mb-4'>
+          <h2 className="text-foreground text-[16px] font-medium mb-4">
+            Key Monitored Places
+          </h2>
+          <div className="grid grid-cols-5 gap-4 relative">
+            {monitoredPlaces.slice(0, 4).map((place) => (
+              <div
+                key={place.id}
+                className="rounded-lg overflow-hidden min-h-[150px]"
+              >
+                {/* uncomment this when actual camera feed is using then apply stream URL then delete img source below */}
+                {/* <LiveFeed streamUrl="back end camera url" /> */}
 
+                <img
+                  src={place.streamUrl}
+                  alt={place.alt}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute -bottom-7 w-full text-[#A6A6A6] text-[12px] font-medium py-1 ml-1">
+                  {place.alt}
                 </div>
-                <div className="relative p-4">{/* Content will be added later */}</div>
               </div>
             ))}
 
             {/* Card 5 - 8+ More */}
-            <div className="relative rounded-lg overflow-hidden min-h-[150px]">
-              <div
-                className=""
-
-              ></div>
-              <div className="relative p-4 flex flex-col items-center justify-center h-full">
-                <div className="text-4xl font-light text-foreground mb-2">8+</div>
-                <div className="text-sm text-muted">More</div>
+            {monitoredPlaces.length > 4 && (
+              <div className="relative rounded-lg overflow-hidden min-h-[150px] flex flex-col items-center justify-center bg-gray-100">
+                <img
+                  src={monitoredPlaces[4].streamUrl} // show the 5th image
+                  alt={monitoredPlaces[4].alt}
+                  className="w-full h-full object-cover absolute top-0 left-0"
+                />
+                <div className="relative z-10 text-4xl font-light text-foreground">8+</div>
+                <div className="relative z-10">More</div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Third Row - Weekly Data Analytics + Speed Dial + Emergency */}
-        <div className="grid grid-cols-12 gap-2">
+        <div className="grid grid-cols-12 gap-2 mt-10">
           {/* Weekly Data Analytics Section */}
           <div className="col-span-7">
             <h2 className="text-foreground text-[16px] font-medium mb-4">Weekly Data Analytics</h2>

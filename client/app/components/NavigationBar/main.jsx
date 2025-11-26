@@ -19,14 +19,16 @@ const NavigationBar = ({ activeView, onNavigate }) => {
           return (
             <div
               key={card.id}
-              onClick={() => onNavigate(card.id)} 
+              onClick={() => onNavigate(card.id)}
               className={`relative rounded-lg p-5 overflow-hidden cursor-pointer group ${isActive ? 'border-2 border-active' : ''}`}
             >
               <div
                 className="absolute inset-0 rounded-lg"
                 style={{
-                  background: 'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)',
-                  opacity: 0.1,
+                  background: isActive
+                    ? 'linear-gradient(135deg, #8BA7FF 14%, #B0C2F9 87%, #BECEFF 100%)'
+                    : 'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)',
+                  opacity: isActive ? 0.35 : 0.1,
                 }}
               ></div>
 
