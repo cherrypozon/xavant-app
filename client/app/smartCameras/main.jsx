@@ -7,6 +7,7 @@ import Footer from '@/app/components/Footer/main'
 import PeopleCounterView from './PeopleCounter/peopleCounterView'
 import CleanTrack from './CleanTrack/cleanTrackView'
 import SafeKeep from './SafeKeep/safeKeepView'
+import LiveFeed from '../components/LiveFeedCamera/main'
 
 const SmartCameras = ({activeView, setActiveView}) => {  
   const renderContainerContent = () => {
@@ -27,12 +28,14 @@ const SmartCameras = ({activeView, setActiveView}) => {
               >
                 <div
                   className="absolute inset-0 rounded-lg"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)',
-                    opacity: 0.1
-                  }}
-                ></div>
+                  // style={{
+                  //   background:
+                  //     'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)',
+                  //   opacity: 0.1
+                  // }}
+                >
+                  <LiveFeed/>
+                </div>
 
                 <div className="relative p-6">
                   <h3 className="text-foreground font-medium text-sm">

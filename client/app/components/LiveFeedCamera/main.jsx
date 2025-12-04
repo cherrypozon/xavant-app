@@ -1,19 +1,44 @@
 'use client'
-import React from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 
-const LiveFeed = ({ streamURL }) => {
-    const videoRef = useRef(null);
+const LiveFeed = () => {
+    const videoRef = useRef(null)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(streamUrl);
-            hls.attachMedia(videoRef.current);
-        } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
-            videoRef.current.src = streamUrl;
+        let isMounted = true
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+                if (isMounted && videoRef.current) {
+                    videoRef.current.srcObject = stream
+                    videoRef.current.onloadedmetadata = () => videoRef.current?.play()
+                }
+            } catch (err) {
+                console.error('[LiveFeed] Error accessing camera:', err)
+                if (isMounted) setError('Camera access denied or unavailable')
+            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [streamUrl]);
+
+        startCamera()
+
+        return () => {
+            isMounted = false
+            if (videoRef.current?.srcObject) {
+                videoRef.current.srcObject.getTracks().forEach(track => track.stop())
+                videoRef.current.srcObject = null
+            }
+        }
+    }, [])
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-full text-red-500">
+                {error}
+            </div>
+        )
+    }
 
     return (
         <video
@@ -22,8 +47,8 @@ const LiveFeed = ({ streamURL }) => {
             muted
             playsInline
             className="w-full h-full object-cover"
-        ></video>
-    );
+        />
+    )
 }
 
 export default LiveFeed
