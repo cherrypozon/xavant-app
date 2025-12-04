@@ -4,6 +4,7 @@ import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import TrafficStatus from '@/app/components/TrafficStatus/main'
 import LineGraph from '@/app/components/Graph/main'
 import LiveFeed from '@/app/components/LiveFeedCamera/main'
+import ZoomableVideo from '@/app/components/ZoomableVideo/main'
 import { Shield } from 'lucide-react'
 
 const PeopleCounterView = () => {
@@ -27,29 +28,18 @@ const PeopleCounterView = () => {
     { id: 2, alt: 'Indoor Pool' },
     { id: 3, alt: 'Main Reception' },
     { id: 4, alt: 'Outdoor Pool' },
-    { id: 5, alt: 'Entrance 5' }
+    { id: 5, alt: 'More' }
   ]
 
   const topAreas = ['Outdoor Pool', 'North Entrance', 'Main Reception']
 
   return (
     <div className="space-y-6 mb-8">
-
       {/* First Row - Live Feed + Traffic Analytics */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
-        
-        {/* Left - Live Feed */}
-        <div className="w-[40%] relative h-full">
-          <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-[#00FF40] mt-0.5"></div>
-            <p className="text-[12px] font-medium">Live <span className="ml-5">North Entrance</span></p>
-          </div>
-          <div className="absolute top-4 right-4 cursor-pointer">
-            <img src="zoomOut.svg" alt="zoom out" />
-          </div>
+        <ZoomableVideo label='Live - North Entrance' className='w-[40%] h-full'>
           <LiveFeed />
-          {/* <img src="sampleImage1.png" alt="North Entrance" className="h-full" /> */}
-        </div>
+        </ZoomableVideo>
 
         {/* Right - Traffic Status + Graph */}
         <div className="w-[60%] py-4">
@@ -100,22 +90,21 @@ const PeopleCounterView = () => {
       {/* Second Row - Key Monitored Places */}
       <div className="mb-4">
         <h2 className="text-foreground text-[16px] font-medium mb-4">Key Monitored Places</h2>
-        <div className="grid grid-cols-5 gap-4 relative">
-          {monitoredPlaces.slice(0, 4).map((place) => (
-            <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] relative">
-              <LiveFeed />
-              <div className="absolute -bottom-7 w-full text-[#A6A6A6] text-[12px] font-medium py-1 ml-1">{place.alt}</div>
+        <div className="grid grid-cols-5 gap-4">
+          {monitoredPlaces.slice(0, 5).map((place, index) => (
+            <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] flex flex-col relative">
+              <div className="flex-1">
+                <LiveFeed className="w-full h-full object-cover" />
+              </div>
+              <p className="w-full text-[#A6A6A6] text-[12px] font-medium py-1">
+                {place.alt}
+              </p>
+              {index === 4 &&
+                <div className="absolute inset-0 rounded-lg overflow-hidden flex flex-col items-center justify-center text-[32px]"> 8+
+                </div>
+              }
             </div>
           ))}
-
-          {monitoredPlaces.length > 4 && (
-            <div className="relative rounded-lg overflow-hidden min-h-[150px] flex flex-col items-center justify-center bg-gray-100">
-              <LiveFeed />
-              <div className="absolute z-10 text-4xl font-light text-foreground">
-                8+ <span className="block text-2xl">More</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

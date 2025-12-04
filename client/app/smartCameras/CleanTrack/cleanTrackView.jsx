@@ -1,8 +1,9 @@
 'use client'
 import React from 'react'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
+import { Shield, X } from 'lucide-react'
+import ZoomableVideo from '@/app/components/ZoomableVideo/main'
 import LiveFeed from '@/app/components/LiveFeedCamera/main'
-import { Shield } from 'lucide-react'
 
 const CleanTrack = () => {
   const dropdownFields = ['Area', 'Item', 'Category', 'Priority', 'Status']
@@ -12,7 +13,7 @@ const CleanTrack = () => {
     { id: 2, streamUrl: 'sampleImage2.png', alt: 'Indoor Pool' },
     { id: 3, streamUrl: 'sampleImage3.png', alt: 'Main Reception' },
     { id: 4, streamUrl: 'sampleImage4.png', alt: 'Outdoor Pool' },
-    { id: 5, streamUrl: 'sampleImage5.png', alt: 'Entrance 5' },
+    { id: 5, streamUrl: 'sampleImage5.png', alt: 'More' },
   ]
 
   const tableRows = [
@@ -22,25 +23,11 @@ const CleanTrack = () => {
   ]
   return (
     <div className="space-y-6 mb-8">
-
       {/* First Row - Live Feed */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
-        <div className="w-[60%] relative h-full">
-          {/* Live Indicator */}
-          <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-[#00FF40] mt-0.5"></div>
-            <p className="text-[12px] font-medium">Live <span className="ml-5">Hallway</span></p>
-          </div>
-          {/* Zoom Icon */}
-          <div className="absolute top-4 right-4 cursor-pointer">
-            <img src="zoomOut.svg" alt="zoom out" />
-          </div>
-
-          {/* Live Feed */}
+        <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
           <LiveFeed />
-          {/* <img src="sampleImage2.png" alt="North Entrance" className="h-full w-full" /> */}
-        </div>
-
+        </ZoomableVideo>
         {/* Right Panel */}
         <div className="w-[40%] p-4 pr-2 flex flex-col">
           <div className="relative mb-5 flex items-center gap-1">
@@ -85,26 +72,21 @@ const CleanTrack = () => {
       {/* Second Row - Key Monitored Places */}
       <div className="mb-4">
         <h2 className="text-foreground text-[16px] font-medium mb-4">Key Monitored Places</h2>
-        <div className="grid grid-cols-5 gap-4 relative">
-          {monitoredPlaces.slice(0, 4).map((place) => (
-            <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] relative">
-              <LiveFeed />
-              {/* <img src={place.streamUrl} alt={place.alt} className="w-full h-full object-cover" /> */}
-              <div className="absolute -bottom-7 w-full text-[#A6A6A6] text-[12px] font-medium py-1 ml-1">
-                {place.alt}
+        <div className="grid grid-cols-5 gap-4">
+          {monitoredPlaces.slice(0, 5).map((place, index) => (
+            <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] flex flex-col relative">
+              <div className="flex-1">
+                <LiveFeed className="w-full h-full object-cover" />
               </div>
+              <p className="w-full text-[#A6A6A6] text-[12px] font-medium py-1">
+                {place.alt}
+              </p>
+              {index === 4 &&
+                <div className="absolute inset-0 rounded-lg overflow-hidden flex flex-col items-center justify-center text-[32px]"> 8+
+                </div>
+              }
             </div>
           ))}
-
-          {/* Fifth Card - More */}
-          {monitoredPlaces.length > 4 && (
-            <div className="relative rounded-lg overflow-hidden min-h-[150px] flex flex-col items-center justify-center bg-gray-100">
-              <LiveFeed />
-              <p className="absolute z-10 text-4xl font-light text-foreground">
-                8+ <span className="block text-2xl">More</span>
-              </p>
-            </div>
-          )}
         </div>
       </div>
 

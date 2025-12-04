@@ -1,8 +1,9 @@
 'use client'
 import React from 'react'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
-import { Shield } from 'lucide-react';
+import { Shield } from 'lucide-react'
 import LiveFeed from '@/app/components/LiveFeedCamera/main';
+import ZoomableVideo from '@/app/components/ZoomableVideo/main';
 
 const SafeKeep = () => {
   //update this part when actual integration happen
@@ -17,18 +18,10 @@ const SafeKeep = () => {
     <div className="space-y-6 mb-8">
       {/* First Row - Large Empty Card */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
-        <div className="w-[60%] relative h-full">
-          <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full">
-            <div className='w-2 h-2 rounded-full bg-[#00FF40] mt-0.5'></div>
-            <p className='text-[12px] font-medium'>Live <span className='ml-5'>Hallway</span></p>
-          </div>
-          <div className='absolute top-4 right-4 cursor-pointer'><img src="zoomOut.svg" alt="zoom out" /></div>
-
-          {/* uncomment this when actual camera feed is using then apply stream URL then delete img source below */}
+        <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
           <LiveFeed />
-          {/* <img src="sampleImage2.png" alt="North Entrance" className='h-full w-full' /> */}
+        </ZoomableVideo>
 
-        </div>
         <div className="w-[40%] p-4 pr-2 flex flex-col">
           <div className="relative mb-5 flex items-center gap-1">
             <span className="text-muted text-xs">smart</span>
@@ -47,7 +40,7 @@ const SafeKeep = () => {
                 <span className="ml-2 px-3 py-1 rounded-[15px] border-[1.5px] border-[#FF3737A6] inline-flex items-center gap-2 text-[#FF3737]">
                   Not Assigned
                   <span>
-                    <img src="dropdownIcon.svg" alt="dropdown icon"/>
+                    <img src="dropdownIcon.svg" alt="dropdown icon" />
                   </span>
                 </span>
               </p>
@@ -57,8 +50,8 @@ const SafeKeep = () => {
               <p className='text-[12px] col-span-2'>An unattended bag has been detected in North Hallway B for the past 36 minutes.</p>
             </div>
             <p className='text-[#A6A6A6] text-[12px]'>Notes</p>
-            <textarea name="text-area" id="text-area" 
-              className="w-full max-h-[100px] min-h-[100px] p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-[12px] font-normal no-scrollbar resize-none" 
+            <textarea name="text-area" id="text-area"
+              className="w-full max-h-[100px] min-h-[100px] p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-[12px] font-normal no-scrollbar resize-none"
               placeholder='Write your notes here...'>
             </textarea>
             <div className='flex gap-4 items-center w-full justify-end'>
