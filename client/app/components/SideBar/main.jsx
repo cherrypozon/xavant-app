@@ -26,7 +26,11 @@ const Sidebar = ({ activeView, onNavigate, collapsed, onToggleCollapse }) => {
         { id: "profile", label: "Profile", icon: UserCircle },
         { id: "settings", label: "Settings", icon: Settings },
     ];
-
+    const shouldShowMiddleGroup = 
+            activeView !== "dashboard" && 
+            activeView !== "emergency" &&
+            activeView !== "profile" &&
+            activeView !== "settings";
     return (
         <div
             className={`h-screen flex flex-col border-r border-border ${collapsed ? "w-20" : "w-64"
@@ -76,11 +80,11 @@ const Sidebar = ({ activeView, onNavigate, collapsed, onToggleCollapse }) => {
                         );
                     })}
                 </ul>
-                {(activeView !== "dashboard" && activeView !== 'emergency') && <div className="border-b border-border mx-3 my-2"></div>}
+                {shouldShowMiddleGroup && <div className="border-b border-border mx-3 my-2"></div>}
 
 
                 {/* Group 2 */}
-                {(activeView !== "dashboard" && activeView !== 'emergency') && (
+                {shouldShowMiddleGroup && (
                     <>
                         <ul className="space-y-8 py-4">
                             {menuItems.slice(2, 5).map((item) => {
