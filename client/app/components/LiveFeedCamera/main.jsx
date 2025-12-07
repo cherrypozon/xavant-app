@@ -1,36 +1,18 @@
-'use client'
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
+import { useCameraStream } from '../../context/cameraContext'
 
 const LiveFeed = () => {
-    const videoRef = useRef(null)
-    const [error, setError] = useState(null)
+    const localVideoRef = useRef(null) // Each LiveFeed gets its own ref
+    const { stream, isStreamActive, error } = useCameraStream()
 
     useEffect(() => {
-        let isMounted = true
-
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-                if (isMounted && videoRef.current) {
-                    videoRef.current.srcObject = stream
-                    videoRef.current.onloadedmetadata = () => videoRef.current?.play()
-                }
-            } catch (err) {
-                console.error('[LiveFeed] Error accessing camera:', err)
-                if (isMounted) setError('Camera access denied or unavailable')
+        if (stream && localVideoRef.current) {
+            localVideoRef.current.srcObject = stream
+            localVideoRef.current.onloadedmetadata = () => {
+                localVideoRef.current?.play()
             }
         }
-
-        startCamera()
-
-        return () => {
-            isMounted = false
-            if (videoRef.current?.srcObject) {
-                videoRef.current.srcObject.getTracks().forEach(track => track.stop())
-                videoRef.current.srcObject = null
-            }
-        }
-    }, [])
+    }, [stream])
 
     if (error) {
         return (
@@ -40,9 +22,17 @@ const LiveFeed = () => {
         )
     }
 
+    if (!isStreamActive) {
+        return (
+            <div className="flex items-center justify-center h-full text-gray-400">
+                Initializing camera...
+            </div>
+        )
+    }
+
     return (
         <video
-            ref={videoRef}
+            ref={localVideoRef}
             autoPlay
             muted
             playsInline
