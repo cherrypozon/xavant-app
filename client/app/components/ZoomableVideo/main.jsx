@@ -63,7 +63,7 @@ const ZoomableVideo = ({
                     <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
                         <button
                             onClick={handleCloseZoom}
-                            className="absolute top-4 right-4 z-101 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                            className="absolute top-4 right-4 z-101 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
                         >
                             <X className="w-6 h-6 text-white" />
                         </button>

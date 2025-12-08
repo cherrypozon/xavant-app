@@ -21,7 +21,7 @@ const SmartCameras = ({activeView, setActiveView}) => {
       default:
         return (
           <div className="grid grid-cols-2 gap-6 mb-8">
-            {[1, 2, 3, 4].map((card, idx) => (
+            {["North Entrance", "South Entrance", "Main Hall", "Parking Lot"].map((card, idx) => (
               <div
                 key={idx}
                 className="relative rounded-lg overflow-hidden min-h-[350px]"
@@ -38,12 +38,9 @@ const SmartCameras = ({activeView, setActiveView}) => {
                 </div>
 
                 <div className="relative p-6">
-                  <h3 className="text-foreground font-medium text-sm">
-                    Camera {card}
+                  <h3 className="text-foreground font-medium text-xs">
+                    {card}
                   </h3>
-                  <p className="text-muted text-[11px] mt-2">
-                    Live feed and analytics will be displayed here.
-                  </p>
                 </div>
               </div>
             ))}
