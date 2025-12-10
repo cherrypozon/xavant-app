@@ -1,13 +1,13 @@
 'use client'
-import React from 'react'
-import NavigationBar from '../components/NavigationBar/main'
-import Header from '../components/Header/main'
-import FilterBar from '@/app/components/FilterBar/main'
-import Footer from '@/app/components/Footer/main'
-import PeopleCounterView from './PeopleCounter/peopleCounterView'
-import CleanTrack from './CleanTrack/cleanTrackView'
-import SafeKeep from './SafeKeep/safeKeepView'
-import LiveFeed from '../components/LiveFeedCamera/main'
+import React from 'react';
+import NavigationBar from '../components/NavigationBar/main';
+import Header from '../components/Header/main';
+import FilterBar from '@/app/components/FilterBar/main';
+import Footer from '@/app/components/Footer/main';
+import PeopleCounterView from './PeopleCounter/peopleCounterView';
+import CleanTrack from './CleanTrack/cleanTrackView';
+import SafeKeep from './SafeKeep/safeKeepView';
+import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
 const SmartCameras = ({activeView, setActiveView}) => {  
   const renderContainerContent = () => {
@@ -34,7 +34,7 @@ const SmartCameras = ({activeView, setActiveView}) => {
                   //   opacity: 0.1
                   // }}
                 >
-                  <LiveFeed/>
+                  <SimpleCameraFeed/>
                 </div>
 
                 <div className="relative p-6">

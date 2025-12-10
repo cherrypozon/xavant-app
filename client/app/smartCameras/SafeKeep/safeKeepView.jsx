@@ -4,6 +4,8 @@ import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import { Shield } from 'lucide-react'
 import LiveFeed from '@/app/components/LiveFeedCamera/main';
 import ZoomableVideo from '@/app/components/ZoomableVideo/main';
+import { COCO_CLASSES } from '@/app/constants/modelClasses';
+import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
 const SafeKeep = () => {
   //update this part when actual integration happen
@@ -19,7 +21,16 @@ const SafeKeep = () => {
       {/* First Row - Large Empty Card */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
-          <LiveFeed />
+          <LiveFeed
+            modelPath="/models/safekeep/model.json"
+            classes={COCO_CLASSES}
+            filterClasses={['suitcase']}
+            unattendedDetection={true}
+            unattendedThreshold={3000}
+            proximityThreshold={150}
+            showPersonBoxes={true}
+            performanceMode='performance'
+          />
         </ZoomableVideo>
 
         <div className="w-[40%] p-4 pr-2 flex flex-col">
@@ -78,7 +89,9 @@ const SafeKeep = () => {
               <div key={idx}>
                 <div className="relative rounded-lg overflow-hidden h-[150px]">
                   {/* uncomment this when actual camera feed is using then apply stream URL then delete img source below */}
-                  <LiveFeed />
+                  <SimpleCameraFeed
+                    className="w-full h-full object-cover" 
+                  />
                   {/* <img
                     src={place.streamUrl}
                     alt={place.name}

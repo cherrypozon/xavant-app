@@ -1,10 +1,10 @@
 'use client'
-import React from 'react'
-import LineGraph from '@/app/components/Graph/main'
-import ProgressBar from '@/app/components/Progressbar/main'
-import AreaActivityReport from '@/app/components/AreaActivityReport/main'
-import AlertsList from '@/app/components/ActiveAlert/main'
-import LiveFeed from '@/app/components/LiveFeedCamera/main'
+import React from 'react';
+import LineGraph from '@/app/components/Graph/main';
+import ProgressBar from '@/app/components/Progressbar/main';
+import AreaActivityReport from '@/app/components/AreaActivityReport/main';
+import AlertsList from '@/app/components/ActiveAlert/main';
+import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
 const Body = () => {
     const events = [
@@ -55,7 +55,17 @@ const Body = () => {
     // Component to render each camera feed
     const CameraCard = ({ name, status }) => (
         <div className='h-[188px] rounded-[10px] relative'>
-            <LiveFeed />
+            {status === 'Online' ? (
+                <SimpleCameraFeed />
+            ) : (
+                <div className="w-full h-full bg-[#2F3545] flex items-center justify-center">
+                    <img
+                        src="sample4.png"
+                        alt="offline"
+                        className="w-full h-full opacity-40 object-cover"
+                    />
+                </div>
+            )}
             <div className='absolute top-3 flex justify-between items-center w-full px-2'>
                 <p className='font-medium text-[10px]'>{name}</p>
                 <div

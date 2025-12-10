@@ -2,7 +2,7 @@
 import React, {useState} from 'react';
 import BellWithBadge from './bellWithBadgeIcon';
 import ThemeSwitch from './themeSwitch';
-import Recording from '@/app/smartCameras/Recording/main';
+import Recording from '../Recording/main';
 
 const Header = ({activeView}) => {
   const now = new Date();

@@ -6,6 +6,8 @@ import LineGraph from '@/app/components/Graph/main'
 import LiveFeed from '@/app/components/LiveFeedCamera/main'
 import ZoomableVideo from '@/app/components/ZoomableVideo/main'
 import { Shield } from 'lucide-react'
+import { COCO_CLASSES } from '@/app/constants/modelClasses';
+import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
 const PeopleCounterView = () => {
   const hourlyDetectionData = [
@@ -38,7 +40,12 @@ const PeopleCounterView = () => {
       {/* First Row - Live Feed + Traffic Analytics */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[40%] h-full'>
-          <LiveFeed />
+          <LiveFeed
+            modelPath="/models/people_counter/model.json"
+            classes={COCO_CLASSES}
+            filterClasses={['person']}
+            performanceMode='performance'
+          />
         </ZoomableVideo>
 
         {/* Right - Traffic Status + Graph */}
@@ -94,7 +101,9 @@ const PeopleCounterView = () => {
           {monitoredPlaces.slice(0, 5).map((place, index) => (
             <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] flex flex-col relative">
               <div className="flex-1">
-                <LiveFeed className="w-full h-full object-cover" />
+                <SimpleCameraFeed
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <p className="w-full text-[#A6A6A6] text-[12px] font-medium py-1">
                 {place.alt}

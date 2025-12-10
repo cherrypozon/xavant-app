@@ -1,9 +1,11 @@
 'use client'
-import React from 'react'
-import SpeedDialCard from '@/app/components/SpeedDialCard/main'
-import { Shield, X } from 'lucide-react'
-import ZoomableVideo from '@/app/components/ZoomableVideo/main'
-import LiveFeed from '@/app/components/LiveFeedCamera/main'
+import React from 'react';
+import SpeedDialCard from '@/app/components/SpeedDialCard/main';
+import { Shield, X } from 'lucide-react';
+import ZoomableVideo from '@/app/components/ZoomableVideo/main';
+import LiveFeed from '@/app/components/LiveFeedCamera/main';
+import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
+import { COCO_CLASSES } from '@/app/constants/modelClasses';
 
 const CleanTrack = () => {
   const dropdownFields = ['Area', 'Item', 'Category', 'Priority', 'Status']
@@ -26,7 +28,13 @@ const CleanTrack = () => {
       {/* First Row - Live Feed */}
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
-          <LiveFeed />
+          <LiveFeed
+            modelPath="/models/cleantrack/model.json"
+            classes={COCO_CLASSES}
+            filterClasses={['bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'brocolli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake']}
+            displayAs="leftovers"
+            performanceMode='performance'
+          />
         </ZoomableVideo>
         {/* Right Panel */}
         <div className="w-[40%] p-4 pr-2 flex flex-col">
@@ -76,7 +84,9 @@ const CleanTrack = () => {
           {monitoredPlaces.slice(0, 5).map((place, index) => (
             <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] flex flex-col relative">
               <div className="flex-1">
-                <LiveFeed className="w-full h-full object-cover" />
+                <SimpleCameraFeed
+                  className="w-full h-full object-cover"
+                />
               </div>
               <p className="w-full text-[#A6A6A6] text-[12px] font-medium py-1">
                 {place.alt}
