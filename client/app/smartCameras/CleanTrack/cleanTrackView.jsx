@@ -33,7 +33,7 @@ const CleanTrack = () => {
             classes={COCO_CLASSES}
             filterClasses={['bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'brocolli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake']}
             displayAs="leftovers"
-            performanceMode='balanced'
+            performanceMode='performance'
           />
         </ZoomableVideo>
         {/* Right Panel */}

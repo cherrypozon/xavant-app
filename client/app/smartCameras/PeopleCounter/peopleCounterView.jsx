@@ -44,7 +44,7 @@ const PeopleCounterView = () => {
             modelPath="/models/yolov8n.onnx"
             classes={COCO_CLASSES}
             filterClasses={['person']}
-            performanceMode='balanced'
+            performanceMode='performance'
           />
         </ZoomableVideo>
 

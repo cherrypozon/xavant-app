@@ -29,7 +29,7 @@ const SafeKeep = () => {
             unattendedThreshold={3000}
             proximityThreshold={150}
             showPersonBoxes={true}
-            performanceMode='balanced'
+            performanceMode='performance'
           />
         </ZoomableVideo>
 
