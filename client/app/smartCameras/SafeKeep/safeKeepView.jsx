@@ -22,14 +22,14 @@ const SafeKeep = () => {
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
           <LiveFeed
-            modelPath="/models/safekeep/model.json"
+            modelPath="/models/yolov8n.onnx"
             classes={COCO_CLASSES}
-            filterClasses={['suitcase']}
+            filterClasses={['suitcase,backpack,handbag']}
             unattendedDetection={true}
             unattendedThreshold={3000}
             proximityThreshold={150}
             showPersonBoxes={true}
-            performanceMode='performance'
+            performanceMode='balanced'
           />
         </ZoomableVideo>
 

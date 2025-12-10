@@ -41,10 +41,10 @@ const PeopleCounterView = () => {
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[40%] h-full'>
           <LiveFeed
-            modelPath="/models/people_counter/model.json"
+            modelPath="/models/yolov8n.onnx"
             classes={COCO_CLASSES}
             filterClasses={['person']}
-            performanceMode='performance'
+            performanceMode='balanced'
           />
         </ZoomableVideo>
 

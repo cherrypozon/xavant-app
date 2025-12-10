@@ -6,9 +6,9 @@ import { modelCache } from '@/app/utils/modelCache';
 
 export default function PageLoader() {
   const MODELS_TO_LOAD = [
-    { path: '/models/people_counter/model.json', name: 'People Counter', type: 'yolo' },
-    { path: '/models/safekeep/model.json', name: 'Safekeep', type: 'yolo' },
-    { path: '/models/cleantrack/model.json', name: 'Cleantrack', type: 'yolo' },
+    { path: '/models/yolov8n.onnx', name: 'People Counter', type: 'onnx' },
+    { path: '/models/yolov8n.onnx', name: 'Safekeep', type: 'onnx' },
+    { path: '/models/yolov8n.onnx', name: 'Cleantrack', type: 'onnx' },
   ];
 
   const { isModelLoaded, modelLoadProgress, error: modelError } = useClipModelsContext();
@@ -22,30 +22,28 @@ export default function PageLoader() {
   const loadingWidth = useMemo(() => {
     if (stage === 'clip') {
       if (!modelLoadProgress || modelLoadProgress === 'Loading CLIP Models...') {
-        return 5;
+        return 10;
       } else if (modelLoadProgress.includes('Loading text model')) {
         return 25;
       } else if (modelLoadProgress.includes('Loading vision model')) {
         return 40;
       }
       return 5;
-    } else if (stage === 'yolo') {
-      if (progress.current === 1) return 50;
-      if (progress.current === 2) return 75;
-      if (progress.current === 3) return 100;
-      return 50;
+    } else if (stage === 'onnx') {
+      const percentage = 40 + (progress.current / progress.total) * 60; 
+      return Math.round(percentage);
     }
     return 5;
-  }, [stage, modelLoadProgress, progress.current]);
+  }, [stage, modelLoadProgress, progress.current, progress.total]);
 
   useEffect(() => {
     if (!isModelLoaded) return;
 
     let isMounted = true;
 
-    async function loadYoloModels() {
+    async function loadOnnxModels() {
       try {
-        setStage('yolo');
+        setStage('onnx');
 
         for (let i = 0; i < MODELS_TO_LOAD.length; i++) {
           const m = MODELS_TO_LOAD[i];
@@ -54,9 +52,9 @@ export default function PageLoader() {
           setCurrentModel(m.name);
           setProgress({ current: i + 1, total: MODELS_TO_LOAD.length });
 
-          console.log(`[PageLoader] 📦 Pre-loading ${m.name}...`);
+          console.log(`[PageLoader] 📦 Loading ${m.name} (${i + 1}/${MODELS_TO_LOAD.length})...`);
           
-          // Load and cache the model
+          // Load and cache the ONNX model
           await modelCache.load(m.path);
           
           console.log(`[PageLoader] ✅ ${m.name} loaded and cached`);
@@ -64,23 +62,21 @@ export default function PageLoader() {
         }
 
         if (isMounted) {
-          console.log(`[PageLoader] 🎉 All models pre-loaded successfully!`);
+          console.log(`[PageLoader] 🎉 All ONNX models pre-loaded successfully!`);
           console.log(`[PageLoader] Final cache stats:`, modelCache.getStats());
           
-          // Wait a bit before hiding loader
           setTimeout(() => setLoading(false), 1500);
         }
       } catch (err) {
-        console.error('[PageLoader] ❌ Error loading models:', err);
+        console.error('[PageLoader] ❌ Error loading ONNX models:', err);
         if (isMounted) setError(`Failed to load models: ${err.message}`);
       }
     }
 
-    loadYoloModels();
+    loadOnnxModels();
 
     return () => { 
       isMounted = false;
-      // DON'T release models here - they should stay cached!
       console.log('[PageLoader] Component unmounting but keeping models cached');
     };
   }, [isModelLoaded]);
@@ -119,10 +115,10 @@ export default function PageLoader() {
               )}
             </div>
           )}
-          {stage === 'yolo' && (
+          {stage === 'onnx' && (
             <div className='w-full'>
               <p className="text-xs font-medium text-[#A6A6A6]">
-                Pre-loading {currentModel} ({progress.current}/{progress.total})
+                Loading {currentModel} ({progress.current}/{progress.total})
               </p>
               <div className="mt-2 w-full bg-gray-700 rounded-full h-1.5 overflow-hidden relative">
                 <div

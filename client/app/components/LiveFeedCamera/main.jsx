@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import * as tf from '@tensorflow/tfjs';
+import * as ort from 'onnxruntime-web';
 import { modelCache } from '@/app/utils/modelCache';
 
 const COLORS = [
@@ -13,32 +13,29 @@ const INPUT_SIZE = 640;
 const CONF_THRESHOLD = 0.4;
 const IOU_THRESHOLD = 0.45;
 
-// PERFORMANCE SETTINGS - Adjust these based on your needs
+// PERFORMANCE CONFIGS - Much better with ONNX!
 const PERFORMANCE_CONFIGS = {
   high: {
-    interval: 200,  
-    resolution: { width: 640, height: 480 },
-    skipFrames: 0
+    interval: 50,  
+    resolution: { width: 640, height: 480 }
   },
   balanced: {
-    interval: 300,  
-    resolution: { width: 480, height: 360 },
-    skipFrames: 0
+    interval: 100, 
+    resolution: { width: 640, height: 480 }
   },
   performance: {
-    interval: 500, 
-    resolution: { width: 480, height: 360 },
-    skipFrames: 1     
+    interval: 200,
+    resolution: { width: 480, height: 360 }
   }
 };
 
 function LiveFeed({
-  modelPath = null,
+  modelPath = '/models/yolov8n.onnx',
   classes = [],
   filterClasses = null,
   displayAs = null,
   unattendedDetection = false,
-  unattendedThreshold = 3000, 
+  unattendedThreshold = 3000,
   proximityThreshold = 150,
   showPersonBoxes = true,
   performanceMode = 'balanced'
@@ -48,19 +45,21 @@ function LiveFeed({
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const modelRef = useRef(null);
+  const sessionRef = useRef(null);
+  const inputNameRef = useRef(null);
+  const inputShapeRef = useRef(null);
   const intervalRef = useRef(null);
   const isDetectingRef = useRef(false);
   const lastDetectionTimeRef = useRef(0);
-  const frameSkipCounterRef = useRef(0);
   const rafRef = useRef(null);
+  const offscreenCanvasRef = useRef(null);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [fps, setFps] = useState(0);
   const [detections, setDetections] = useState([]);
-  const [tensorCount, setTensorCount] = useState(0);
+  const [inferenceTime, setInferenceTime] = useState(0);
 
   const frameCountRef = useRef(0);
   const lastTimeRef = useRef(performance.now());
@@ -68,55 +67,54 @@ function LiveFeed({
   const trackedSuitcasesRef = useRef(new Map());
   const nextIdRef = useRef(0);
 
+  // Load ONNX model (most likely already cached by PageLoader)
   useEffect(() => {
     if (!modelPath) {
       setIsModelLoaded(false);
       return;
     }
-    
-    let isMounted = true;
 
     async function loadModel() {
       try {
-        console.log(`[LiveFeed] Checking model: ${modelPath}`);
+        console.log(`[LiveFeed] Getting ONNX model: ${modelPath}`);
         
+        // Check if already cached (should be from PageLoader)
         if (modelCache.isCached(modelPath)) {
-          console.log(`[LiveFeed] ✅ Model already cached: ${modelPath}`);
-          const model = modelCache.get(modelPath);
+          console.log(`[LiveFeed] ✅ Using pre-cached model: ${modelPath}`);
+          const cached = modelCache.get(modelPath);
           
-          if (isMounted && model) {
-            const cached = modelCache.cache.get(modelPath);
-            if (cached) {
-              cached.refCount++;
-              console.log(`[LiveFeed] Ref count: ${cached.refCount}`);
-            }
-            
-            modelRef.current = model;
-            setIsModelLoaded(true);
-            return;
+          // Increment ref count since we're using it
+          const cachedEntry = modelCache.cache.get(modelPath);
+          if (cachedEntry) {
+            cachedEntry.refCount++;
+            console.log(`[LiveFeed] Ref count: ${cachedEntry.refCount}`);
           }
-        }
-
-        console.log(`[LiveFeed] ⏳ Loading model: ${modelPath}`);
-        const model = await modelCache.load(modelPath);
-
-        if (isMounted) {
-          modelRef.current = model;
+          
+          sessionRef.current = cached.session;
+          inputNameRef.current = cached.inputName;
+          inputShapeRef.current = cached.inputShape;
           setIsModelLoaded(true);
-          console.log(`[LiveFeed] ✅ Model ready: ${modelPath}`);
+          return;
         }
+
+        // If not cached (shouldn't happen), load it
+        console.log(`[LiveFeed] ⏳ Loading ONNX model: ${modelPath}`);
+        const { session, inputShape, inputName } = await modelCache.load(modelPath);
+
+        sessionRef.current = session;
+        inputNameRef.current = inputName;
+        inputShapeRef.current = inputShape;
+        setIsModelLoaded(true);
+        console.log(`[LiveFeed] ✅ ONNX model ready: ${modelPath}`);
       } catch (err) {
-        console.error('[LiveFeed] Error loading model:', err);
-        if (isMounted) {
-          setError(`Model load error: ${err.message}`);
-        }
+        console.error('[LiveFeed] Error loading ONNX model:', err);
+        setError(`Model load error: ${err.message}`);
       }
     }
 
     loadModel();
 
     return () => {
-      isMounted = false;
       console.log(`[LiveFeed] Cleanup: releasing model ${modelPath}`);
 
       if (intervalRef.current) {
@@ -129,58 +127,55 @@ function LiveFeed({
         rafRef.current = null;
       }
 
+      // Release model reference
       if (modelPath && modelCache.isCached(modelPath)) {
         modelCache.release(modelPath);
-        modelRef.current = null;
+        sessionRef.current = null;
       }
     };
   }, [modelPath]);
 
-  // Start camera with performance-adjusted resolution
+  // Start camera
   useEffect(() => {
-    let isMounted = true;
-
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: config.resolution.width },
-            height: { ideal: config.resolution.height }
+            height: { ideal: config.resolution.height },
+            facingMode: 'environment'
           }
         });
 
-        if (isMounted && videoRef.current) {
+        if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
-            if (isMounted && canvasRef.current && videoRef.current) {
+            if (canvasRef.current && videoRef.current) {
               canvasRef.current.width = videoRef.current.videoWidth;
               canvasRef.current.height = videoRef.current.videoHeight;
+              
+              // Create offscreen canvas for preprocessing
+              offscreenCanvasRef.current = document.createElement('canvas');
+              offscreenCanvasRef.current.width = INPUT_SIZE;
+              offscreenCanvasRef.current.height = INPUT_SIZE;
             }
-            if (isMounted) {
-              setIsStreaming(true);
-            }
+            setIsStreaming(true);
           };
-        } else if (!isMounted) {
-          stream.getTracks().forEach(track => track.stop());
         }
       } catch (err) {
         console.error('[LiveFeed] Error accessing camera:', err);
-        if (isMounted) {
-          setError(`Camera error: ${err.message}`);
-        }
+        setError(`Camera error: ${err.message}`);
       }
     }
 
     startCamera();
 
     return () => {
-      isMounted = false;
       console.log('[LiveFeed] Cleanup: stopping camera');
 
       if (videoRef.current?.srcObject) {
         const stream = videoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
+        stream.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
 
@@ -188,9 +183,38 @@ function LiveFeed({
     };
   }, [config.resolution]);
 
-  // Start detection with performance optimizations
+  // Optimized preprocessing function
+  const preprocessImage = (video) => {
+    const offscreenCanvas = offscreenCanvasRef.current;
+    const ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+    
+    // Draw and resize in one operation
+    ctx.drawImage(video, 0, 0, INPUT_SIZE, INPUT_SIZE);
+    
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
+    const pixels = imageData.data;
+    
+    // Convert to CHW format (channels, height, width) and normalize
+    const red = [];
+    const green = [];
+    const blue = [];
+    
+    for (let i = 0; i < pixels.length; i += 4) {
+      red.push(pixels[i] / 255.0);
+      green.push(pixels[i + 1] / 255.0);
+      blue.push(pixels[i + 2] / 255.0);
+    }
+    
+    // Combine into single array in CHW format
+    const inputData = Float32Array.from([...red, ...green, ...blue]);
+    
+    return new ort.Tensor('float32', inputData, [1, 3, INPUT_SIZE, INPUT_SIZE]);
+  };
+
+  // Start detection loop
   useEffect(() => {
-    if (!isStreaming || !isModelLoaded || !modelRef.current) {
+    if (!isStreaming || !isModelLoaded || !sessionRef.current) {
       return;
     }
 
@@ -204,15 +228,7 @@ function LiveFeed({
         return;
       }
 
-      // Frame skipping for performance mode
-      if (config.skipFrames > 0) {
-        frameSkipCounterRef.current++;
-        if (frameSkipCounterRef.current % (config.skipFrames + 1) !== 0) {
-          return;
-        }
-      }
-
-      if (!modelRef.current || !videoRef.current || !canvasRef.current) return;
+      if (!sessionRef.current || !videoRef.current || !canvasRef.current) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -222,23 +238,25 @@ function LiveFeed({
       isDetectingRef.current = true;
       lastDetectionTimeRef.current = now;
 
-      let inputTensor = null;
-      let outputTensor = null;
-
       try {
-        inputTensor = tf.tidy(() => {
-          const img = tf.browser.fromPixels(video);
-          const resized = tf.image.resizeBilinear(img, [INPUT_SIZE, INPUT_SIZE]);
-          const normalized = resized.div(255.0);
-          return normalized.expandDims(0);
+        // Preprocess image
+        const inferenceStart = performance.now();
+        const inputTensor = preprocessImage(video);
+
+        // Run inference
+        const outputs = await sessionRef.current.run({
+          [inputNameRef.current]: inputTensor
         });
 
-        outputTensor = modelRef.current.predict(inputTensor);
-        const output = await outputTensor.array();
+        // Get output tensor
+        const output = outputs[sessionRef.current.outputNames[0]];
+        const inferenceEnd = performance.now();
+        setInferenceTime(inferenceEnd - inferenceStart);
 
         if (!isActive) return;
 
-        const boxes = postprocess(output[0], video.videoWidth, video.videoHeight);
+        // Post-process detections
+        const boxes = postprocess(output.data, output.dims, video.videoWidth, video.videoHeight);
 
         if (unattendedDetection) {
           const suitcases = boxes.filter(box => box.className === 'suitcase');
@@ -281,7 +299,6 @@ function LiveFeed({
 
           setDetections(displayBoxes);
           
-          // Use requestAnimationFrame for smooth rendering
           if (rafRef.current) cancelAnimationFrame(rafRef.current);
           rafRef.current = requestAnimationFrame(() => {
             const ctx = canvas.getContext('2d');
@@ -299,24 +316,22 @@ function LiveFeed({
           });
         }
 
+        // Update FPS
         frameCountRef.current++;
         const currentTime = performance.now();
         if (currentTime - lastTimeRef.current >= 1000) {
           setFps(frameCountRef.current);
-          setTensorCount(tf.memory().numTensors);
           frameCountRef.current = 0;
           lastTimeRef.current = currentTime;
         }
       } catch (err) {
         console.error('[LiveFeed] Detection error:', err);
       } finally {
-        if (inputTensor) inputTensor.dispose();
-        if (outputTensor) tf.dispose(outputTensor);
         isDetectingRef.current = false;
       }
     };
 
-    console.log(`[LiveFeed] Starting detection loop (${performanceMode} mode: ${DETECTION_INTERVAL}ms)`);
+    console.log(`[LiveFeed] Starting ONNX detection loop (${performanceMode} mode: ${DETECTION_INTERVAL}ms)`);
     intervalRef.current = setInterval(detectObjects, DETECTION_INTERVAL);
 
     return () => {
@@ -338,47 +353,55 @@ function LiveFeed({
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     };
-  }, [isStreaming, isModelLoaded, DETECTION_INTERVAL]);
+  }, [isStreaming, isModelLoaded, DETECTION_INTERVAL, unattendedDetection, proximityThreshold, showPersonBoxes, unattendedThreshold, performanceMode]);
 
-  const postprocess = (output, videoWidth, videoHeight) => {
+  // Post-process ONNX output (YOLOv8 format)
+  const postprocess = (outputData, dims, videoWidth, videoHeight) => {
     if (!classes.length) return [];
+    
     const boxes = [];
-    const numDetections = output[0].length;
-
-    for (let i = 0; i < numDetections; i++) {
-      const cx = output[0][i];
-      const cy = output[1][i];
-      const w = output[2][i];
-      const h = output[3][i];
-
+    const [batch, outputs, detections] = dims; // e.g., [1, 84, 8400]
+    
+    // YOLOv8 format: 84 values per detection (4 bbox + 80 classes)
+    for (let i = 0; i < detections; i++) {
+      // Extract bbox (center_x, center_y, width, height)
+      const cx = outputData[i];
+      const cy = outputData[detections + i];
+      const w = outputData[2 * detections + i];
+      const h = outputData[3 * detections + i];
+      
+      // Find class with highest confidence
       let maxScore = 0;
       let maxClass = 0;
+      
       for (let c = 0; c < 80; c++) {
-        const score = output[4 + c][i];
+        const score = outputData[(4 + c) * detections + i];
         if (score > maxScore) {
           maxScore = score;
           maxClass = c;
         }
       }
-
+      
       if (maxScore > CONF_THRESHOLD) {
         const className = classes[maxClass];
-
+        
+        // Filter classes
         if (unattendedDetection) {
           if (className !== 'person' && className !== 'suitcase') continue;
         } else {
           if (filterClasses && !filterClasses.includes(className)) continue;
         }
-
-        const x1 = (cx - w / 2) / INPUT_SIZE * videoWidth;
-        const y1 = (cy - h / 2) / INPUT_SIZE * videoHeight;
-        const x2 = (cx + w / 2) / INPUT_SIZE * videoWidth;
-        const y2 = (cy + h / 2) / INPUT_SIZE * videoHeight;
-
+        
+        // Convert to corner coordinates and scale to video size
+        const x1 = ((cx - w / 2) / INPUT_SIZE) * videoWidth;
+        const y1 = ((cy - h / 2) / INPUT_SIZE) * videoHeight;
+        const x2 = ((cx + w / 2) / INPUT_SIZE) * videoWidth;
+        const y2 = ((cy + h / 2) / INPUT_SIZE) * videoHeight;
+        
         boxes.push({ x1, y1, x2, y2, score: maxScore, classId: maxClass, className });
       }
     }
-
+    
     return nms(boxes, IOU_THRESHOLD);
   };
 
@@ -529,9 +552,9 @@ function LiveFeed({
       <div className="absolute top-13 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
         {!isStreaming && !isModelLoaded && <span>🔄 Initializing...</span>}
         {!isStreaming && isModelLoaded && <span>📷 Starting camera...</span>}
-        {isStreaming && !isModelLoaded && <span>⏳ Loading model...</span>}
+        {isStreaming && !isModelLoaded && <span>⏳ Loading ONNX model...</span>}
         {isStreaming && isModelLoaded && (
-          <span>✅ {fps} FPS | {detections.length} det | {tensorCount} tensors | {performanceMode}</span>
+          <span>✅ {fps} FPS | {inferenceTime.toFixed(0)}ms | {detections.length} det | {performanceMode}</span>
         )}
       </div>
     </div>
