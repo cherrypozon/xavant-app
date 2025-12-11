@@ -29,11 +29,11 @@ const CleanTrack = () => {
       <div className="overflow-hidden h-[370px] flex items-center gap-4 bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px]">
         <ZoomableVideo label='Live - North Entrance' className='w-[60%] h-full'>
           <LiveFeed
-            modelPath="/models/yolov8n.onnx"
+            modelPath="/models/cleantrack/model.json"
             classes={COCO_CLASSES}
             filterClasses={['bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'brocolli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake']}
             displayAs="leftovers"
-            performanceMode='performance'
+            performanceMode='balanced'
           />
         </ZoomableVideo>
         {/* Right Panel */}

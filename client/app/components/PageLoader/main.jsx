@@ -6,9 +6,9 @@ import { modelCache } from '@/app/utils/modelCache';
 
 export default function PageLoader() {
   const MODELS_TO_LOAD = [
-    { path: '/models/yolov8n.onnx', name: 'People Counter', type: 'onnx' },
-    { path: '/models/yolov8n.onnx', name: 'Safekeep', type: 'onnx' },
-    { path: '/models/yolov8n.onnx', name: 'Cleantrack', type: 'onnx' },
+    { path: '/models/people_counter/model.json', name: 'People Counter', type: 'tfjs' },
+    { path: '/models/safekeep/model.json', name: 'Safekeep', type: 'tfjs' },
+    { path: '/models/cleantrack/model.json', name: 'Cleantrack', type: 'tfjs' },
   ];
 
   const { isModelLoaded, modelLoadProgress, error: modelError } = useClipModelsContext();
@@ -41,7 +41,7 @@ export default function PageLoader() {
 
     let isMounted = true;
 
-    async function loadOnnxModels() {
+    async function loadTFJSModels() {
       try {
         setStage('onnx');
 
@@ -53,27 +53,27 @@ export default function PageLoader() {
           setProgress({ current: i + 1, total: MODELS_TO_LOAD.length });
 
           console.log(`[PageLoader] 📦 Loading ${m.name} (${i + 1}/${MODELS_TO_LOAD.length})...`);
-          
-          // Load and cache the ONNX model
+
+          // Load and cache the TensorFlow.js model
           await modelCache.load(m.path);
-          
+
           console.log(`[PageLoader] ✅ ${m.name} loaded and cached`);
           console.log(`[PageLoader] Cache stats:`, modelCache.getStats());
         }
 
         if (isMounted) {
-          console.log(`[PageLoader] 🎉 All ONNX models pre-loaded successfully!`);
+          console.log(`[PageLoader] 🎉 All TensorFlow.js models pre-loaded successfully!`);
           console.log(`[PageLoader] Final cache stats:`, modelCache.getStats());
-          
+
           setTimeout(() => setLoading(false), 1500);
         }
       } catch (err) {
-        console.error('[PageLoader] ❌ Error loading ONNX models:', err);
+        console.error('[PageLoader] ❌ Error loading TensorFlow.js models:', err);
         if (isMounted) setError(`Failed to load models: ${err.message}`);
       }
     }
 
-    loadOnnxModels();
+    loadTFJSModels();
 
     return () => { 
       isMounted = false;
