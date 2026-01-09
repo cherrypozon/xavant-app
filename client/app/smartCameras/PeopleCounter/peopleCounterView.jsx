@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import TrafficStatus from '@/app/components/TrafficStatus/main'
 import LineGraph from '@/app/components/Graph/main'
@@ -8,9 +8,33 @@ import ZoomableVideo from '@/app/components/ZoomableVideo/main'
 import { Shield } from 'lucide-react'
 import { COCO_CLASSES } from '@/app/constants/modelClasses';
 import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
+const MemoizedLineGraph = React.memo(LineGraph)
 
 const PeopleCounterView = () => {
-  const hourlyDetectionData = [
+  const [currentPeopleCount, setCurrentPeopleCount] = useState(0)
+
+  // Calculate traffic status based on current count
+  const getTrafficStatus = (count) => {
+    if (count === 0) return "Empty"
+    if (count <= 10) return "Low"
+    if (count <= 25) return "Moderate"
+    if (count <= 40) return "High"
+    return "Very High"
+  }
+
+  // Calculate utilization percentage (assuming max capacity of 50)
+  const getUtilization = (count, maxCapacity = 50) => {
+    return Math.min(Math.round((count / maxCapacity) * 100), 100) + "%"
+  }
+
+  const handleDetectionUpdate = useCallback((detections) => {
+    const personCount = detections.filter(detection =>
+      detection.class === 'person' || detection.className === 'person'
+    ).length
+    setCurrentPeopleCount(personCount)
+  }, [])
+
+  const hourlyDetectionData = useMemo(() => [
     { time: '4:00', count: 5 },
     { time: '6:00', count: 8 },
     { time: '8:00', count: 18 },
@@ -23,7 +47,7 @@ const PeopleCounterView = () => {
     { time: '22:00', count: 25 },
     { time: '0:00', count: 8 },
     { time: '2:00', count: 3 }
-  ]
+  ], [])
 
   const monitoredPlaces = [
     { id: 1, alt: '4F Hallway B' },
@@ -45,6 +69,7 @@ const PeopleCounterView = () => {
             classes={COCO_CLASSES}
             filterClasses={['person']}
             performanceMode='balanced'
+            onDetectionUpdate={handleDetectionUpdate}
           />
         </ZoomableVideo>
 
@@ -59,9 +84,9 @@ const PeopleCounterView = () => {
             {/* Traffic Status + Predictions */}
             <div className="w-[45%] flex flex-col">
               <TrafficStatus
-                currentTraffic={45}
-                trafficStatus="Moderate"
-                utilization="60%"
+                currentTraffic={currentPeopleCount}
+                trafficStatus={getTrafficStatus(currentPeopleCount)}
+                utilization={getUtilization(currentPeopleCount)}
                 peakTime="12:30"
                 offPeakTime="09:15"
                 avgTraffic="38"
@@ -82,7 +107,7 @@ const PeopleCounterView = () => {
             {/* Line Graph */}
             <div className="w-[55%] bg-[linear-gradient(0deg,#85A3FF4D,#DCE1F24D)] rounded-[10px] pt-5">
               <p className="w-full text-center font-medium text-[12px] mb-4">Foot Traffic per day</p>
-              <LineGraph
+              <MemoizedLineGraph
                 data={hourlyDetectionData}
                 xKey="time"
                 yKey="count"
@@ -102,7 +127,7 @@ const PeopleCounterView = () => {
             <div key={place.id} className="rounded-lg overflow-hidden min-h-[150px] flex flex-col relative">
               <div className="flex-1">
                 <SimpleCameraFeed
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-cover"
                 />
               </div>
               <p className="w-full text-[#A6A6A6] text-[12px] font-medium py-1">

@@ -40,7 +40,8 @@ export default function LiveFeed({
   unattendedThreshold = 3000,
   proximityThreshold = 150,
   showPersonBoxes = true,
-  performanceMode = 'balanced'
+  performanceMode = 'balanced',
+  onDetectionUpdate, // Add this new prop
 }) {
   const config = PERFORMANCE_CONFIGS[performanceMode];
   const DETECTION_INTERVAL = config.interval;
@@ -253,11 +254,17 @@ export default function LiveFeed({
             ...(showPersonBoxes ? people : [])
           ];
 
+          if (onDetectionUpdate && typeof onDetectionUpdate === 'function') {
+            onDetectionUpdate(displayBoxes)
+          }
           setDetections(displayBoxes);
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           drawBoxesWithUnattended(ctx, displayBoxes);
         } else {
+          if (onDetectionUpdate && typeof onDetectionUpdate === 'function') {
+            onDetectionUpdate(boxes)
+          }
           setDetections(boxes);
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
