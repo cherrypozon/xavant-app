@@ -1,6 +1,19 @@
 import { useRef, useEffect, useState } from 'react';
-import { AutoTokenizer, CLIPTextModelWithProjection, AutoProcessor, CLIPVisionModelWithProjection, RawImage } from '@huggingface/transformers';
+import { AutoTokenizer, CLIPTextModelWithProjection, AutoProcessor, CLIPVisionModelWithProjection, RawImage, env } from '@huggingface/transformers';
 import Dexie from 'dexie';
+
+// Configure transformers.js to use our CORS proxy instead of directly hitting HuggingFace
+// This fixes CORS issues on some networks/browsers
+const getProxyUrl = () => {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api/hf-proxy`;
+  }
+  return '/api/hf-proxy';
+};
+
+env.remoteHost = getProxyUrl();
+env.useBrowserCache = true;
+env.allowLocalModels = false;
 
 // Initialize IndexedDB - Changed structure to store individual frames
 const db = new Dexie('VideoSearchDB');
