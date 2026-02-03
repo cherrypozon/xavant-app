@@ -1,0 +1,239 @@
+{
+    "dashboard": {
+        "security_overview": {
+            "system_status": "normal",
+            "online_cameras": 8,
+            "offline_cameras": 2,
+            "zones_secured": 12
+        },
+        "event_timeline": {
+            "range": "last_24_hours",
+            "events": [
+                {
+                    "time": "08:30",
+                    "description": "Guest arrivals begin"
+                },
+                {
+                    "time": "09:15",
+                    "description": "Front desk processes early check-ins"
+                },
+                {
+                    "time": "10:00",
+                    "description": "Housekeeping begins daily room cleaning"
+                },
+                {
+                    "time": "12:00",
+                    "description": "Check-out period completes"
+                }
+            ]
+        },
+        "system_health": {
+            "camera": "ok",
+            "network": "ok",
+            "storage": {
+                "status": "ok",
+                "usage_percent": 75
+            }
+        },
+        "insights": {
+            "hourly_motion": [
+                {
+                    "hour": "06:00",
+                    "count": 5
+                },
+                {
+                    "hour": "08:00",
+                    "count": 18
+                },
+                {
+                    "hour": "10:00",
+                    "count": 35
+                },
+                {
+                    "hour": "12:00",
+                    "count": 32
+                },
+                {
+                    "hour": "14:00",
+                    "count": 28
+                },
+                {
+                    "hour": "16:00",
+                    "count": 15
+                },
+                {
+                    "hour": "18:00",
+                    "count": 40
+                },
+                {
+                    "hour": "20:00",
+                    "count": 22
+                },
+                {
+                    "hour": "22:00",
+                    "count": 8
+                }
+            ],
+            "peak_foot_traffic_zones": [
+                {
+                    "zone": "Indoor Pool",
+                    "percentage": 20
+                },
+                {
+                    "zone": "Outdoor Pool",
+                    "percentage": 35
+                },
+                {
+                    "zone": "Lobby",
+                    "percentage": 11
+                },
+                {
+                    "zone": "North Entrance",
+                    "percentage": 10
+                },
+                {
+                    "zone": "Hallway",
+                    "percentage": 6
+                },
+                {
+                    "zone": "Elevator",
+                    "percentage": 11
+                },
+                {
+                    "zone": "Stairway",
+                    "percentage": 7
+                }
+            ],
+            "busiest_zone": {
+                "zone": "Outdoor Pool",
+                "traffic_percent": 35
+            },
+            "quietest_zone": {
+                "zone": "Hallway",
+                "traffic_percent": 6
+            }
+        },
+        "alerts": {
+            "active_count": 5,
+            "items": [
+                {
+                    "id": "A-001",
+                    "title": "Unattended item at North Hallway B",
+                    "item": "Bag",
+                    "time": "09:15",
+                    "status": "not_assigned",
+                    "severity": "warning"
+                },
+                {
+                    "id": "A-002",
+                    "title": "Towels and Garbage at North Hallway B",
+                    "item": "Towels",
+                    "status": "assigned",
+                    "severity": "urgent"
+                },
+                {
+                    "id": "A-003",
+                    "title": "Wet floor at Indoor Pool area",
+                    "item": "Wetfloor",
+                    "status": "assigned",
+                    "severity": "non_urgent"
+                },
+                {
+                    "id": "A-004",
+                    "title": "Heavy foot traffic at North Entrance",
+                    "status": "active",
+                    "severity": "info"
+                },
+                {
+                    "id": "A-005",
+                    "title": "Heavy foot traffic at Outdoor Pool",
+                    "status": "active",
+                    "severity": "info"
+                }
+            ]
+        },
+        "area_activity_report": {
+            "period": "7_days",
+            "areas": [
+                {
+                    "area": "Indoor Pool",
+                    "current_visits": 293,
+                    "previous_visits": 488,
+                    "change_percent": -41.2,
+                    "peak_hour": "13:00",
+                    "average_duration_minutes": 15
+                },
+                {
+                    "area": "Outdoor Pool",
+                    "current_visits": 145,
+                    "previous_visits": 342,
+                    "change_percent": -57.6,
+                    "peak_hour": "12:00",
+                    "average_duration_minutes": 22
+                },
+                {
+                    "area": "Lobby",
+                    "current_visits": 450,
+                    "previous_visits": 272,
+                    "change_percent": 65.4,
+                    "peak_hour": "10:00",
+                    "average_duration_minutes": 23
+                },
+                {
+                    "area": "North Entrance",
+                    "current_visits": 305,
+                    "previous_visits": 421,
+                    "change_percent": -27.6,
+                    "peak_hour": "14:00",
+                    "average_duration_minutes": 14
+                },
+                {
+                    "area": "Hallway",
+                    "current_visits": 291,
+                    "previous_visits": 137,
+                    "change_percent": 112.4,
+                    "peak_hour": "08:00",
+                    "average_duration_minutes": 8
+                },
+                {
+                    "area": "Elevator",
+                    "current_visits": 133,
+                    "previous_visits": 372,
+                    "change_percent": -64.2,
+                    "peak_hour": "18:00",
+                    "average_duration_minutes": 18
+                },
+                {
+                    "area": "Stairway",
+                    "current_visits": 368,
+                    "previous_visits": 214,
+                    "change_percent": 72.0,
+                    "peak_hour": "10:00",
+                    "average_duration_minutes": 12
+                }
+            ]
+        },
+        "camera_feeds": [
+            {
+                "camera_id": "CAM-01",
+                "location": "North Entrance",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-02",
+                "location": "Main Reception",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-03",
+                "location": "Hallway",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-04",
+                "location": "Indoor Pool",
+                "status": "offline"
+            }
+        ]
+    }
+}

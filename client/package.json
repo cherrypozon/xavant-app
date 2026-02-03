@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.0",
+    "@reduxjs/toolkit": "^2.11.2",
     "@tensorflow/tfjs": "^4.22.0",
     "dexie": "^4.2.1",
     "framer-motion": "^12.23.24",
@@ -19,6 +20,7 @@
     "onnxruntime-web": "^1.23.2",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-redux": "^9.2.0",
     "recharts": "^3.4.1"
   },
   "devDependencies": {
