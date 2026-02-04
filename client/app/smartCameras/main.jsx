@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, {use, useEffect} from 'react';
 import NavigationBar from '../components/NavigationBar/main';
 import Header from '../components/Header/main';
 import FilterBar from '@/app/components/FilterBar/main';
@@ -8,8 +8,21 @@ import PeopleCounterView from './PeopleCounter/peopleCounterView';
 import CleanTrack from './CleanTrack/cleanTrackView';
 import SafeKeep from './SafeKeep/safeKeepView';
 import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { fetchSmartCamerasData } from '../store/thunks/smartCamerasThunks';
 
 const SmartCameras = ({activeView, setActiveView}) => {  
+  const dispatch = useAppDispatch();
+  const { data, isLoading, error } = useAppSelector((state) => state.smartCameras);
+
+  useEffect(() => {
+    dispatch(fetchSmartCamerasData());
+  }, [dispatch]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  console.log("Smart Cameras data:", data);
+
   const renderContainerContent = () => {
     switch (activeView) {
       case 'people-counter':

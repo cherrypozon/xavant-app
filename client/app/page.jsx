@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Dashboard from './dashboard/main.jsx';
 import Sidebar from './components/SideBar/main.jsx';
 import SmartCameras from './smartCameras/main.jsx';
@@ -11,7 +11,6 @@ import Profile from './components/Profile/main.jsx';
 export default function Home() {
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar

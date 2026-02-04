@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect } from 'react';
 import LineGraph from '@/app/components/Graph/main';
 import ProgressBar from '@/app/components/Progressbar/main';
 import AreaActivityReport from '@/app/components/AreaActivityReport/main';

@@ -1,8 +1,10 @@
 'use client';
 
 import { createSlice } from '@reduxjs/toolkit';
+import { fetchDashboardData } from '@/app/store/thunks/dashboardThunks';
 
 const initialState = {
+  data: null,
   stats: {
     totalCameras: 0,
     activeAlerts: 0,
@@ -35,7 +37,36 @@ const dashboardSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearDashboardData: (state) => {
+      state.data = null;
+      state.error = null;
+    },
     resetDashboard: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch dashboard data
+      .addCase(fetchDashboardData.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDashboardData.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.data = action.payload;
+        state.error = null;
+
+        // Auto-update stats from fetched data
+        if (action.payload?.smart_cameras) {
+          const { camera_feeds, safe_keep, people_counter } = action.payload.smart_cameras;
+          state.stats.totalCameras = camera_feeds?.length || 0;
+          state.stats.activeAlerts = safe_keep?.alerts?.length || 0;
+          state.stats.peopleCount = parseInt(people_counter?.current_traffic?.count) || 0;
+        }
+      })
+      .addCase(fetchDashboardData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Failed to fetch dashboard data';
+      });
   },
 });
 
@@ -45,12 +76,8 @@ export const {
   setLoading,
   setError,
   clearError,
+  clearDashboardData,
   resetDashboard,
 } = dashboardSlice.actions;
-
-export const selectDashboardStats = (state) => state.dashboard.stats;
-export const selectDashboardFilters = (state) => state.dashboard.filters;
-export const selectDashboardLoading = (state) => state.dashboard.isLoading;
-export const selectDashboardError = (state) => state.dashboard.error;
 
 export default dashboardSlice.reducer;
