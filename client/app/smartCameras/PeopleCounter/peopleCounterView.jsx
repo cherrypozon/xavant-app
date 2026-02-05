@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useCallback, useMemo } from 'react'
+import { useAppSelector } from '@/app/store/hooks'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import TrafficStatus from '@/app/components/TrafficStatus/main'
 import LineGraph from '@/app/components/Graph/main'
@@ -11,6 +12,10 @@ import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamer
 const MemoizedLineGraph = React.memo(LineGraph)
 
 const PeopleCounterView = () => {
+  const { data } = useAppSelector((state) => state.smartCameras);
+  const peopleCounterData = data?.smart_cameras?.people_counter;
+  const speedDialData = data?.smart_cameras?.speed_dial;
+  
   const [currentPeopleCount, setCurrentPeopleCount] = useState(0)
 
   // Calculate traffic status based on current count
@@ -49,15 +54,36 @@ const PeopleCounterView = () => {
     { time: '2:00', count: 3 }
   ], [])
 
-  const monitoredPlaces = [
-    { id: 1, alt: '4F Hallway B' },
-    { id: 2, alt: 'Indoor Pool' },
-    { id: 3, alt: 'Main Reception' },
-    { id: 4, alt: 'Outdoor Pool' },
-    { id: 5, alt: 'More' }
-  ]
+  // Get monitored places from mock data or use defaults
+  const monitoredPlaces = useMemo(() => {
+    if (peopleCounterData?.monitored_locations) {
+      return peopleCounterData.monitored_locations.map((loc, idx) => ({
+        id: idx + 1,
+        alt: loc.location,
+        count: loc.count || null
+      }));
+    }
+    return [
+      { id: 1, alt: '4F Hallway B' },
+      { id: 2, alt: 'Indoor Pool' },
+      { id: 3, alt: 'Main Reception' },
+      { id: 4, alt: 'Outdoor Pool' },
+      { id: 5, alt: 'More' }
+    ];
+  }, [peopleCounterData]);
 
-  const topAreas = ['Outdoor Pool', 'North Entrance', 'Main Reception']
+  // Get top areas from mock data or use defaults
+  const topAreas = useMemo(() => {
+    if (peopleCounterData?.weekly_analytics?.top_3_areas_by_traffic) {
+      return peopleCounterData.weekly_analytics.top_3_areas_by_traffic.map(area => area.location);
+    }
+    return ['Outdoor Pool', 'North Entrance', 'Main Reception'];
+  }, [peopleCounterData]);
+
+  // Get traffic analysis data
+  const trafficAnalysis = peopleCounterData?.traffic_analysis;
+  const currentTraffic = peopleCounterData?.current_traffic;
+  const weeklyAnalytics = peopleCounterData?.weekly_analytics;
 
   return (
     <div className="space-y-6 mb-8">
@@ -87,14 +113,14 @@ const PeopleCounterView = () => {
                 currentTraffic={currentPeopleCount}
                 trafficStatus={getTrafficStatus(currentPeopleCount)}
                 utilization={getUtilization(currentPeopleCount)}
-                peakTime="12:30"
-                offPeakTime="09:15"
-                avgTraffic="38"
+                peakTime={trafficAnalysis?.peak_times?.morning?.split(' - ')[0] || "12:30"}
+                offPeakTime={trafficAnalysis?.peak_times?.afternoon || "09:15"}
+                avgTraffic={currentTraffic?.count || "38"}
               />
               <div className="grid grid-cols-2 grid-rows-2 gap-4 mt-5">
                 {[
-                  { title: 'Prediction', desc: 'Based on past data, expected rush hour will occur at around 19:00.', icon: 'predectionIcon.svg' },
-                  { title: 'Staffing', desc: 'Add one hotel personnel in the next 5mins', icon: 'staffingIcon.svg' }
+                  { title: 'Prediction', desc: trafficAnalysis?.prediction_note || 'Based on past data, expected rush hour will occur at around 19:00.', icon: 'predectionIcon.svg' },
+                  { title: 'Staffing', desc: `Add ${currentTraffic?.staffing || '1'} hotel personnel in the next 5mins`, icon: 'staffingIcon.svg' }
                 ].map((item) => (
                   <React.Fragment key={item.title}>
                     <p className="font-medium text-[12px] relative">{item.title} <img src={item.icon} alt={item.title} className="absolute" /></p>

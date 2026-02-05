@@ -6,51 +6,62 @@ import AreaActivityReport from '@/app/components/AreaActivityReport/main';
 import AlertsList from '@/app/components/ActiveAlert/main';
 import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
-const Body = () => {
-    const events = [
-        { time: '12:00 PM', text: 'Check-out period completes' },
-        { time: '10:00 AM', text: 'Housekeeping begins daily room cleaning' },
-        { time: '9:15 AM', text: 'Front desk processes early check-ins' },
-        { time: '8:30 AM', text: 'Guest arrivals begin' }
-    ]
+const Body = ({ data }) => {
+    if (!data || !data.dashboard) {
+        return;
+    }
 
-    const hourlyDetectionData = [
-        { time: '4:00', count: 5 }, { time: '6:00', count: 8 }, { time: '8:00', count: 18 },
-        { time: '10:00', count: 38 }, { time: '12:00', count: 35 }, { time: '14:00', count: 32 },
-        { time: '16:00', count: 28 }, { time: '18:00', count: 18 }, { time: '20:00', count: 42 },
-        { time: '22:00', count: 25 }, { time: '0:00', count: 8 }, { time: '2:00', count: 3 }
-    ]
+    const { 
+        security_overview, 
+        event_timeline, 
+        system_health, 
+        insights, 
+        alerts, 
+        area_activity_report, 
+        camera_feeds 
+    } = data.dashboard;
 
-    const zones = [
-        { label: 'Indoor Pool', percent: 20 }, { label: 'Outdoor Pool', percent: 35 },
-        { label: 'Lobby', percent: 11 }, { label: 'North Entrance', percent: 10 },
-        { label: 'Hall Way', percent: 6 }, { label: 'Elevator', percent: 11 }, { label: 'Stairway', percent: 7 }
-    ]
+    const events = event_timeline.events.map(e => ({
+        time: e.time,
+        text: e.description
+    })).reverse();
 
-    const areaData = [
-        { area: 'Indoor Pool', current: 293, previous: 488, change: -41.2, peak: '13:00', duration: '15 min' },
-        { area: 'Outdoor Pool', current: 145, previous: 342, change: -57.6, peak: '12:00', duration: '22 min' },
-        { area: 'Lobby', current: 450, previous: 272, change: 65.4, peak: '10:00', duration: '23 min' },
-        { area: 'North Entrance', current: 305, previous: 421, change: -27.6, peak: '14:00', duration: '14 min' },
-        { area: 'Hallway', current: 291, previous: 137, change: 112.4, peak: '8:00', duration: '8 min' },
-        { area: 'Elevator', current: 133, previous: 372, change: -64.2, peak: '18:00', duration: '18 min' },
-        { area: 'Stairway', current: 368, previous: 214, change: 72, peak: '10:00', duration: '12 min' }
-    ]
+    const hourlyDetectionData = insights.hourly_motion.map(item => ({
+        time: item.hour,
+        count: item.count
+    }));
 
-    const activeAlerts = [
-        { title: 'Unattended Item at North Hallway B', item: 'Bag', time: '9:15', status: 'Not assigned' },
-        { title: 'Towels and Garbage at North Hallway B', item: 'Towels', category: 'Urgent', status: 'Assigned' },
-        { title: 'Wetfloor at Indoor Pool area', item: 'Wetfloor', category: 'Non-urgent', status: 'Assigned' },
-        { title: 'Heavy foot traffic at North Entrance' },
-        { title: 'Heavy foot traffic at Outdoor Pool' }
-    ]
+    const zones = insights.peak_foot_traffic_zones.map(zone => ({
+        label: zone.zone,
+        percent: zone.percentage
+    }));
 
-    const cameras = [
-        { name: 'North Entrance', status: 'Online' },
-        { name: 'Main Reception', status: 'Online' },
-        { name: 'Hallway', status: 'Online' },
-        { name: 'Indoor Pool', status: 'Offline' }
-    ]
+    const areaData = area_activity_report.areas.map(area => ({
+        area: area.area,
+        current: area.current_visits,
+        previous: area.previous_visits,
+        change: area.change_percent,
+        peak: area.peak_hour,
+        duration: `${area.average_duration_minutes} min`
+    }));
+
+    const activeAlerts = alerts.items.map(alert => ({
+        title: alert.title,
+        item: alert.item,
+        time: alert.time,
+        status: alert.status === 'not_assigned' ? 'Not assigned' : 
+                alert.status === 'assigned' ? 'Assigned' : 
+                alert.status,
+        category: alert.severity === 'urgent' ? 'Urgent' : 
+                  alert.severity === 'non_urgent' ? 'Non-urgent' : 
+                  undefined
+    }));
+
+    // Transform camera feeds data
+    const cameras = camera_feeds.map(cam => ({
+        name: cam.location,
+        status: cam.status === 'online' ? 'Online' : 'Offline'
+    }));
 
     // Component to render each camera feed
     const CameraCard = ({ name, status }) => (
@@ -69,14 +80,15 @@ const Body = () => {
             <div className='absolute top-3 flex justify-between items-center w-full px-2'>
                 <p className='font-medium text-[10px]'>{name}</p>
                 <div
-                    className={`rounded-[10px] px-2 py-1 font-semibold text-[8px] ${status === 'Online' ? 'bg-[#00FF40A6]' : 'bg-[#FF3737]'
-                        }`}
+                    className={`rounded-[10px] px-2 py-1 font-semibold text-[8px] ${
+                        status === 'Online' ? 'bg-[#00FF40A6]' : 'bg-[#FF3737]'
+                    }`}
                 >
                     {status}
                 </div>
             </div>
         </div>
-    )
+    );
 
     return (
         <div>
@@ -95,16 +107,18 @@ const Body = () => {
                     </div>
                     <div className='ml-[37px] mt-3 flex items-center gap-2.5'>
                         <div className='bg-[#10B981] w-2 h-2 rounded-full'></div>
-                        <h2 className='font-medium text-xs text-[#10B981]'>All Systems Normal</h2>
+                        <h2 className='font-medium text-xs text-[#10B981]'>
+                            {security_overview.system_status === 'normal' ? 'All Systems Normal' : security_overview.system_status}
+                        </h2>
                     </div>
                     <div className='w-[280px] h-0.5 bg-[#979797] opacity-40 ml-3 mt-5'></div>
                     <div className='flex items-center mt-3 ml-[37px] gap-6'>
                         <h1 className='font-semibold text-[19px] text-white flex items-center gap-2'>
-                            8
+                            {security_overview.online_cameras}
                             <span className='text-[10px] opacity-80 font-normal text-white'>Cameras Online</span>
                         </h1>
                         <h1 className='font-semibold text-[19px] text-white flex items-center gap-2'>
-                            12
+                            {security_overview.zones_secured}
                             <span className='text-[10px] opacity-80 font-normal text-white'>Zones Secured</span>
                         </h1>
                     </div>
@@ -147,18 +161,21 @@ const Body = () => {
                         </h1>
                     </div>
                     <div className='ml-[37px] mt-3 flex flex-col gap-2'>
-                        {[
-                            { icon: 'videoIcon.svg', label: 'Camera', statusIcon: 'checkIcon.svg' },
-                            { icon: 'storageIcon.svg', label: 'Storage', extra: '75% Used' },
-                            { icon: 'wifiIcon.svg', label: 'Network', statusIcon: 'checkIcon.svg' }
-                        ].map((item, idx) => (
-                            <div key={idx} className='flex items-center gap-15 ml-1.5'>
-                                <img src={item.icon} alt={item.label} />
-                                <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>{item.label}</h2>
-                                {item.extra && <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>{item.extra}</h2>}
-                                {item.statusIcon && <img src={item.statusIcon} alt='check Icon' className={item.label === 'Network' ? 'ml-[-3px]' : ''} />}
-                            </div>
-                        ))}
+                        <div className='flex items-center gap-15 ml-1.5'>
+                            <img src='videoIcon.svg' alt='Camera' />
+                            <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>Camera</h2>
+                            {system_health.camera === 'ok' && <img src='checkIcon.svg' alt='check Icon' />}
+                        </div>
+                        <div className='flex items-center gap-15 ml-1.5'>
+                            <img src='storageIcon.svg' alt='Storage' />
+                            <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>Storage</h2>
+                            <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>{system_health.storage.usage_percent}% Used</h2>
+                        </div>
+                        <div className='flex items-center gap-15 ml-1.5'>
+                            <img src='wifiIcon.svg' alt='Network' />
+                            <h2 className='font-semibold text-[10px] text-[#FFFFFFB3]'>Network</h2>
+                            {system_health.network === 'ok' && <img src='checkIcon.svg' alt='check Icon' className='ml-[-3px]' />}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,7 +226,7 @@ const Body = () => {
                                         <p className='font-normal text-[9px]'>Busiest Zone</p>
                                     </div>
                                     <p className='font-normal text-[9px] flex justify-between'>
-                                        Outdoor Pool <span className='text-[#14AE5C] font-bold text-[8px]'>35 % Traffic</span>
+                                        {insights.busiest_zone.zone} <span className='text-[#14AE5C] font-bold text-[8px]'>{insights.busiest_zone.traffic_percent}% Traffic</span>
                                     </p>
                                 </div>
                                 <div className='bg-[#56658c] px-4 py-2 rounded-[10px] flex flex-col gap-1'>
@@ -218,16 +235,16 @@ const Body = () => {
                                         <p className='font-normal text-[9px]'>Quietest Zone </p>
                                     </div>
                                     <p className='font-normal text-[9px] flex justify-between'>
-                                        Hallway <span className='text-[#14AE5C] font-bold text-[8px]'>6 % Traffic</span>
+                                        {insights.quietest_zone.zone} <span className='text-[#14AE5C] font-bold text-[8px]'>{insights.quietest_zone.traffic_percent}% Traffic</span>
                                     </p>
                                 </div>
                                 <div className='col-span-2 row-start-2 bg-[#56658c] px-4 py-2 rounded-[10px] flex flex-col gap-1'>
                                     <div className='flex items-center gap-1'>
                                         <img src='trend.svg' alt='alert' />
-                                        <p className='font-normal text-[9px]'>High Traffic Areas - More than 20 % traffic</p>
+                                        <p className='font-normal text-[9px]'>High Traffic Areas - More than 20% traffic</p>
                                     </div>
                                     <p className='font-normal text-[9px] flex justify-between'>
-                                        2 Zones above average <span className='text-[#14AE5C] font-bold text-[8px]'>Indoor Pool, Outdoor Pool</span>
+                                        2 Zones above average <span className='text-[#14AE5C] font-bold text-[8px]'>Indoor Pool, Outdoor Pool</span>
                                     </p>
                                 </div>
                             </div>
@@ -256,7 +273,7 @@ const Body = () => {
 
                 {/* Active Alerts & Live Feeds */}
                 <div className='w-[35%] flex flex-col gap-4'>
-                    <h1 className='mt-4 font-medium text-[15px]'>Active Alerts (5)</h1>
+                    <h1 className='mt-4 font-medium text-[15px]'>Active Alerts ({alerts.active_count})</h1>
                     <div className='w-full -mt-2'>
                         <div className='w-full bg-[linear-gradient(0deg,#85A3FF1A,#DCE1F21A)] rounded-[10px] p-4'>
                             <AlertsList alerts={activeAlerts} />
@@ -275,4 +292,4 @@ const Body = () => {
     )
 }
 
-export default Body
+export default Body;

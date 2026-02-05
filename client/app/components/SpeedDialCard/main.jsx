@@ -1,7 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Phone } from 'lucide-react';
+import { useAppSelector } from '@/app/store/hooks';
 
 const SpeedDialCard = () => {
+  const { data } = useAppSelector((state) => state.smartCameras);
+  const speedDialData = data?.smart_cameras?.speed_dial;
+  const emergencyData = data?.smart_cameras?.emergency;
+
+  // Get contacts from mock data or use defaults
+  const contacts = useMemo(() => {
+    if (speedDialData?.contacts) {
+      return speedDialData.contacts;
+    }
+    return ['Attendant/ Guest Care', 'Security Personnel', 'Housekeeping', 'Maintenance'];
+  }, [speedDialData]);
+
+  // Get emergency status from mock data or use default
+  const emergencyStatus = emergencyData?.status || 'Press only in case of Emergency';
+
   return (
     <div className="rounded-lg ml-4 py-2 h-full w-full ">
       {/* Background overlay */}
@@ -12,7 +28,7 @@ const SpeedDialCard = () => {
         <div className="flex flex-col justify-start">
           <h3 className="text-foreground text-[16px] font-medium mb-4">Speed Dial</h3>
           <div className="space-y-6 text-sm">
-            {['Attendant/ Guest Care', 'Security Personnel', 'Housekeeping', 'Maintenance'].map((role, idx) => (
+            {contacts.map((role, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-foreground" />
                 <span className="text-foreground font-normal text-sm">{role}</span>
@@ -29,7 +45,7 @@ const SpeedDialCard = () => {
           <div className="text-6xl mb-3 text-white">✱</div>
           <div className="text-[16px] font-medium mb-2 text-white">Emergency</div>
           <div className="text-[10px] text-white opacity-80">
-            Press only in case of Emergency
+            {emergencyStatus}
           </div>
         </div>
       </div>

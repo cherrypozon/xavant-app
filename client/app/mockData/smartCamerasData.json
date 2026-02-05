@@ -1,0 +1,181 @@
+{
+    "smart_cameras": {
+        "camera_feeds": [
+            {
+                "camera_id": "CAM-01",
+                "location": "North Entrance",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-02",
+                "location": "Main Reception",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-03",
+                "location": "Hallway",
+                "status": "online"
+            },
+            {
+                "camera_id": "CAM-04",
+                "location": "Indoor Pool",
+                "status": "offline"
+            }
+        ],
+        "safe_keep": {
+            "alerts": [
+                {
+                    "alert_id": "ALERT-001",
+                    "type": "Unattended Item",
+                    "location": "North Hallway B",
+                    "item": "Bag",
+                    "detection_time": "19:45",
+                    "duration": "35 minutes",
+                    "status": "Not Assigned",
+                    "description": "An unattended bag has been detected in North Hallway B for the past 35 minutes",
+                    "notes": ""
+                }
+            ]
+        },
+        "clean_track": {
+            "areas": [
+                "North Hall B",
+                "Indoor Pool",
+                "Elevator Hall A"
+            ],
+            "items": [
+                "Towels",
+                "Wet Floor",
+                "Bathroom cart"
+            ],
+            "categories": [
+                "Urgent",
+                "Non-Urgent"
+            ],
+            "priorities": [
+                "Not Balanced"
+            ],
+            "statuses": [
+                "Assigned",
+                "Not Assigned"
+            ],
+            "tasks": [
+                {
+                    "task_id": "TASK-001",
+                    "area": "North Hall B",
+                    "item": "Towels",
+                    "category": "Urgent",
+                    "priority": "Not Balanced",
+                    "status": "Assigned",
+                    "remarks": "Multiple towels and some..."
+                },
+                {
+                    "task_id": "TASK-002",
+                    "area": "Indoor Pool",
+                    "item": "Wet Floor",
+                    "category": "Non-Urgent",
+                    "priority": "Not Balanced",
+                    "status": "Assigned",
+                    "remarks": "Wet floor, accident risk"
+                },
+                {
+                    "task_id": "TASK-003",
+                    "area": "Elevator Hall A",
+                    "item": "Bathroom cart",
+                    "category": "Non-Urgent",
+                    "priority": "Not Balanced",
+                    "status": "Assigned",
+                    "remarks": "Unused cart for return..."
+                }
+            ]
+        },
+        "people_counter": {
+            "current_traffic": {
+                "total_count": 1,
+                "traffic_now": "Initiation On",
+                "date_today": "12:30",
+                "time": "08:15",
+                "count": "38",
+                "prediction": "Waiting",
+                "staffing": "2"
+            },
+            "traffic_analysis": {
+                "peak_times": {
+                    "morning": "08:15 - 11:30",
+                    "afternoon": "Off-Peak Time"
+                },
+                "avg_traffic": "38/4 ratio",
+                "prediction_note": "Based on past data, expected rush hour will occur at around 18:00"
+            },
+            "monitored_locations": [
+                {
+                    "location": "3F Hallway B",
+                    "current_occupancy": 0
+                },
+                {
+                    "location": "Indoor Pool",
+                    "current_occupancy": 0
+                },
+                {
+                    "location": "Main Reception",
+                    "current_occupancy": 0
+                },
+                {
+                    "location": "Outdoor Pool",
+                    "current_occupancy": 0
+                },
+                {
+                    "location": "More",
+                    "count": "8+"
+                }
+            ],
+            "weekly_analytics": {
+                "top_3_areas_by_traffic": [
+                    {
+                        "rank": 1,
+                        "location": "Outdoor Pool",
+                        "traffic_level": "Highest"
+                    },
+                    {
+                        "rank": 2,
+                        "location": "North Entrance",
+                        "traffic_level": "Medium"
+                    },
+                    {
+                        "rank": 3,
+                        "location": "Main Reception",
+                        "traffic_level": "Medium"
+                    }
+                ],
+                "incidents": [
+                    {
+                        "location": "Outdoor Pool",
+                        "time_range": "9:15 - 11:20",
+                        "day": "Friday",
+                        "type": "High traffic",
+                        "incidents_reported": "2 incidents"
+                    },
+                    {
+                        "location": "Outdoor Pool",
+                        "time_range": "7:00 - 21:00",
+                        "day": "Tuesday",
+                        "type": "Usual traffic",
+                        "incidents_reported": "4 incidents"
+                    }
+                ]
+            }
+        },
+        "speed_dial": {
+            "contacts": [
+                "Attendant/ Guest Care",
+                "Security Personnel",
+                "Housekeeping",
+                "Maintenance"
+            ]
+        },
+        "emergency": {
+            "status": "Press only in case of Emergency",
+            "button_available": true
+        }
+    }
+}

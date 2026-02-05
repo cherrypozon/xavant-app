@@ -24,124 +24,123 @@ db.version(2).stores({
 export { db };
 
 // Custom hook for CLIP models
-export function useClipModels() {
-  const textModelRef = useRef(null);
-  const visionModelRef = useRef(null);
-  const tokenizerRef = useRef(null);
-  const processorRef = useRef(null);
-  const loadingRef = useRef(false);
+// Global model storage (persists across component remounts in Strict Mode)
+let globalModels = {
+  textModel: null,
+  visionModel: null,
+  tokenizer: null,
+  processor: null,
+  isLoaded: false,
+  isLoading: false,
+  loadPromise: null,
+};
 
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
+export function useClipModels() {
+  const [isModelLoaded, setIsModelLoaded] = useState(globalModels.isLoaded);
   const [modelLoadProgress, setModelLoadProgress] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
+    // If already loaded globally, just update local state
+    if (globalModels.isLoaded) {
+      console.log('[VideoSearch] Models already loaded globally, using cached');
+      setIsModelLoaded(true); // eslint-disable-line
+      return;
+    }
 
-    if (loadingRef.current) {
-      console.log('[VideoSearch] Models already loading, skipping...');
+    // If already loading, wait for the existing promise
+    if (globalModels.isLoading && globalModels.loadPromise) {
+      console.log('[VideoSearch] Models already loading, waiting...');
+      globalModels.loadPromise.then(() => {
+        if (globalModels.isLoaded) {
+          setIsModelLoaded(true); 
+        }
+      });
       return;
     }
 
     async function loadModels() {
-      if (loadingRef.current) return;
-      loadingRef.current = true;
+      globalModels.isLoading = true;
 
       try {
         console.log('[VideoSearch] Loading CLIP models...');
+        console.log('[VideoSearch] Using proxy:', env.remoteHost);
 
-        if (isMounted) {
-          setModelLoadProgress('Loading text model...');
-        }
+        setModelLoadProgress('Loading text model...');
 
+        console.log('[VideoSearch] Starting CLIPTextModelWithProjection.from_pretrained...');
         const loadedTextModel = await CLIPTextModelWithProjection.from_pretrained(
           'Xenova/clip-vit-base-patch32',
           {
             dtype: 'fp32',
             progress_callback: (progress) => {
-              if (progress.status === 'progress' && isMounted) {
+              if (progress.status === 'progress') {
                 setModelLoadProgress(`Loading text model: ${Math.round(progress.progress)}%`);
               }
             }
           }
         );
 
-        if (!isMounted) {
-          console.log('[VideoSearch] Component unmounted during text model load, aborting...');
-          return;
-        }
-
         const loadedTokenizer = await AutoTokenizer.from_pretrained('Xenova/clip-vit-base-patch32');
-
         console.log('[VideoSearch] Text model loaded (fp32)');
 
-        if (isMounted) {
-          setModelLoadProgress('Loading vision model...');
-        }
+        setModelLoadProgress('Loading vision model...');
 
         const loadedVisionModel = await CLIPVisionModelWithProjection.from_pretrained(
           'Xenova/clip-vit-base-patch32',
           {
             dtype: 'fp32',
             progress_callback: (progress) => {
-              if (progress.status === 'progress' && isMounted) {
+              if (progress.status === 'progress') {
                 setModelLoadProgress(`Loading vision model: ${Math.round(progress.progress)}%`);
               }
             }
           }
         );
 
-        if (!isMounted) {
-          console.log('[VideoSearch] Component unmounted during vision model load, aborting...');
-          return;
-        }
-
         const loadedProcessor = await AutoProcessor.from_pretrained('Xenova/clip-vit-base-patch32');
-
         console.log('[VideoSearch] Vision model loaded');
 
-        if (isMounted) {
-          textModelRef.current = loadedTextModel;
-          visionModelRef.current = loadedVisionModel;
-          tokenizerRef.current = loadedTokenizer;
-          processorRef.current = loadedProcessor;
+        // Store globally
+        globalModels.textModel = loadedTextModel;
+        globalModels.visionModel = loadedVisionModel;
+        globalModels.tokenizer = loadedTokenizer;
+        globalModels.processor = loadedProcessor;
+        globalModels.isLoaded = true;
+        globalModels.isLoading = false;
 
-          setIsModelLoaded(true);
-          setModelLoadProgress('');
-          setError(null);
-          console.log('[VideoSearch] All CLIP models ready');
-        }
+        setIsModelLoaded(true);
+        setModelLoadProgress('');
+        setError(null);
+        console.log('[VideoSearch] All CLIP models ready');
+
       } catch (err) {
         console.error('[VideoSearch] Error loading CLIP models:', err);
-
-        if (isMounted) {
-          if (err.message && err.message.includes('Aborted')) {
-            console.log('[VideoSearch] Model loading aborted (component unmounted)');
-            setError('Model loading was cancelled');
-          } else {
-            setError(`Model load error: ${err.message}`);
-          }
-          setModelLoadProgress('');
+        globalModels.isLoading = false;
+        
+        if (err.message && err.message.includes('Aborted')) {
+          console.log('[VideoSearch] Model loading aborted');
+          setError('Model loading was cancelled');
+        } else {
+          setError(`Model load error: ${err.message}`);
         }
-      } finally {
-        loadingRef.current = false;
+        setModelLoadProgress('');
       }
     }
 
-    loadModels();
+    globalModels.loadPromise = loadModels();
 
     return () => {
-      console.log('[VideoSearch] useClipModels cleanup called');
-      isMounted = false;
+      console.log('[VideoSearch] useClipModels cleanup called (models persist globally)');
     };
   }, []);
 
   return {
     getModels: () => ({
-      textModel: textModelRef.current,
-      visionModel: visionModelRef.current,
-      tokenizer: tokenizerRef.current,
-      processor: processorRef.current
+      textModel: globalModels.textModel,
+      visionModel: globalModels.visionModel,
+      tokenizer: globalModels.tokenizer,
+      processor: globalModels.processor
     }),
     isModelLoaded,
     modelLoadProgress,

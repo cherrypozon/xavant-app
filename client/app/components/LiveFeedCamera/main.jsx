@@ -550,7 +550,7 @@ export default function LiveFeed({
       />
 
       {/* Status overlay */}
-      <div className="absolute top-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
+      <div className="absolute top-2 left-2 text-white text-[10px] bg-black/50 px-2 py-1 rounded">
         {!isStreaming && !isModelLoaded && <span>Loading and warming up model...</span>}
         {!isStreaming && isModelLoaded && <span>Starting camera...</span>}
         {isStreaming && !isModelLoaded && <span>Waiting for model...</span>}
