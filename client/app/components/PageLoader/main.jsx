@@ -1,23 +1,39 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useSyncExternalStore } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useClipModelsContext } from '@/app/context/clipModelContext';
 import { modelCache } from '@/app/utils/modelCache';
+import { setModelsLoaded } from '@/app/store/slices/dashboardSlice';
+
+// Hook to safely check if component is mounted (avoids hydration mismatch)
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
+const MODELS_TO_LOAD = [
+  { path: '/models/people_counter/model.json', name: 'People Counter', type: 'tfjs' },
+  { path: '/models/safekeep/model.json', name: 'Safekeep', type: 'tfjs' },
+  { path: '/models/cleantrack/model.json', name: 'Cleantrack', type: 'tfjs' },
+];
 
 export default function PageLoader() {
-  const MODELS_TO_LOAD = [
-    { path: '/models/people_counter/model.json', name: 'People Counter', type: 'tfjs' },
-    { path: '/models/safekeep/model.json', name: 'Safekeep', type: 'tfjs' },
-    { path: '/models/cleantrack/model.json', name: 'Cleantrack', type: 'tfjs' },
-  ];
-
+  const dispatch = useDispatch();
+  // Use ?? false to handle undefined from old persisted state
+  const modelsLoaded = useSelector((state) => state.dashboard?.modelsLoaded ?? false);
   const { isModelLoaded, modelLoadProgress, error: modelError } = useClipModelsContext();
-  const [visible, setVisible] = useState(true);
-  const [loading, setLoading] = useState(true);
+  
+  const isMounted = useIsMounted();
+  const [fadeOut, setFadeOut] = useState(false);
   const [currentModel, setCurrentModel] = useState('');
   const [progress, setProgress] = useState({ current: 0, total: MODELS_TO_LOAD.length });
   const [error, setError] = useState(null);
   const [stage, setStage] = useState('clip');
+  const [loadingComplete, setLoadingComplete] = useState(false);
 
   const loadingWidth = useMemo(() => {
     if (stage === 'clip') {
@@ -34,12 +50,20 @@ export default function PageLoader() {
       return Math.round(percentage);
     }
     return 5;
-  }, [stage, modelLoadProgress, progress.current, progress.total]);
+  }, [stage, modelLoadProgress, progress]);
+
+  // Debug log to track loading state
+  useEffect(() => {
+    console.log('[PageLoader] State:', { isModelLoaded, modelsLoaded, stage, modelLoadProgress });
+  }, [isModelLoaded, modelsLoaded, stage, modelLoadProgress]);
 
   useEffect(() => {
-    if (!isModelLoaded) return;
+    if (!isModelLoaded || modelsLoaded) {
+      console.log('[PageLoader] Waiting for CLIP models...', { isModelLoaded, modelsLoaded });
+      return;
+    }
 
-    let isMounted = true;
+    let isMountedLocal = true;
 
     async function loadTFJSModels() {
       try {
@@ -47,7 +71,7 @@ export default function PageLoader() {
 
         for (let i = 0; i < MODELS_TO_LOAD.length; i++) {
           const m = MODELS_TO_LOAD[i];
-          if (!isMounted) return;
+          if (!isMountedLocal) return;
 
           setCurrentModel(m.name);
           setProgress({ current: i + 1, total: MODELS_TO_LOAD.length });
@@ -61,38 +85,43 @@ export default function PageLoader() {
           console.log(`[PageLoader] Cache stats:`, modelCache.getStats());
         }
 
-        if (isMounted) {
+        if (isMountedLocal) {
           console.log(`[PageLoader] 🎉 All TensorFlow.js models pre-loaded successfully!`);
           console.log(`[PageLoader] Final cache stats:`, modelCache.getStats());
 
-          setTimeout(() => setLoading(false), 1500);
+          // Mark models as loaded in Redux store (persisted to sessionStorage)
+          dispatch(setModelsLoaded(true));
+
+          setTimeout(() => setLoadingComplete(true), 1500);
         }
       } catch (err) {
         console.error('[PageLoader] ❌ Error loading TensorFlow.js models:', err);
-        if (isMounted) setError(`Failed to load models: ${err.message}`);
+        if (isMountedLocal) setError(`Failed to load models: ${err.message}`);
       }
     }
 
     loadTFJSModels();
 
     return () => { 
-      isMounted = false;
+      isMountedLocal = false;
       console.log('[PageLoader] Component unmounting but keeping models cached');
     };
-  }, [isModelLoaded]);
+  }, [isModelLoaded, modelsLoaded, dispatch]);
 
   useEffect(() => {
-    if (!loading) {
-      const t = setTimeout(() => setVisible(false), 500);
+    if (loadingComplete) {
+      const t = setTimeout(() => setFadeOut(true), 500);
       return () => clearTimeout(t);
     }
-  }, [loading]);
+  }, [loadingComplete]);
 
-  if (!loading || !visible) return null;
+  // Don't render if not mounted yet (SSR), models already loaded, or loading complete with fadeout
+  if (!isMounted || modelsLoaded || (loadingComplete && fadeOut)) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-background" suppressHydrationWarning>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-background">
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/xavant_logo_1.png" alt="Xavant Logo" className="max-w-xs w-full px-8" />
         <p className="text-foreground text-center">Powered by Smart Sensing & Gen AI</p>
 
@@ -139,6 +168,7 @@ export default function PageLoader() {
         </div>
       </div>
       <div className="flex items-end justify-center py-8">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/accenture_logo.png" alt="Accenture Logo" className="max-w-[150px] w-full px-8" />
       </div>
     </div>

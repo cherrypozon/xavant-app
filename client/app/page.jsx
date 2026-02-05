@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setActiveView, toggleSidebar } from './store/slices/dashboardSlice';
 import Dashboard from './dashboard/main.jsx';
 import Sidebar from './components/SideBar/main.jsx';
 import SmartCameras from './smartCameras/main.jsx';
@@ -9,15 +10,24 @@ import Setting from './components/Setting/main.jsx';
 import Profile from './components/Profile/main.jsx';
 
 export default function Home() {
-  const [activeView, setActiveView] = useState('dashboard');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const dispatch = useDispatch();
+  const { activeView, sidebarCollapsed } = useSelector((state) => state.dashboard);
+
+  const handleNavigate = (view) => {
+    dispatch(setActiveView(view));
+  };
+
+  const handleToggleCollapse = () => {
+    dispatch(toggleSidebar());
+  };
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
         activeView={activeView}
-        onNavigate={setActiveView}
+        onNavigate={handleNavigate}
         collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggleCollapse={handleToggleCollapse}
       />
       <div className="flex-1 overflow-auto">
         {activeView === 'dashboard' && <Dashboard />}
@@ -27,7 +37,7 @@ export default function Home() {
           activeView === 'cleantrack') && (
             <SmartCameras
               activeView={activeView}
-              setActiveView={setActiveView}
+              setActiveView={handleNavigate}
             />
           )}
         {activeView === 'emergency' && <Emergency />}

@@ -4,6 +4,11 @@ import { createSlice } from '@reduxjs/toolkit';
 import { fetchDashboardData } from '@/app/store/thunks/dashboardThunks';
 
 const initialState = {
+  // Navigation state (persisted)
+  activeView: 'dashboard',
+  sidebarCollapsed: false,
+  modelsLoaded: false,
+  // Dashboard data
   data: null,
   stats: {
     totalCameras: 0,
@@ -14,7 +19,7 @@ const initialState = {
     dateRange: null,
     selectedArea: null,
   },
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
@@ -22,6 +27,20 @@ const dashboardSlice = createSlice({
   name: 'dashboard',
   initialState,
   reducers: {
+    // Navigation actions
+    setActiveView: (state, action) => {
+      state.activeView = action.payload;
+    },
+    setSidebarCollapsed: (state, action) => {
+      state.sidebarCollapsed = action.payload;
+    },
+    toggleSidebar: (state) => {
+      state.sidebarCollapsed = !state.sidebarCollapsed;
+    },
+    setModelsLoaded: (state, action) => {
+      state.modelsLoaded = action.payload;
+    },
+    // Dashboard actions
     setStats: (state, action) => {
       state.stats = { ...state.stats, ...action.payload };
     },
@@ -71,6 +90,12 @@ const dashboardSlice = createSlice({
 });
 
 export const {
+  // Navigation actions
+  setActiveView,
+  setSidebarCollapsed,
+  toggleSidebar,
+  setModelsLoaded,
+  // Dashboard actions
   setStats,
   setFilters,
   setLoading,

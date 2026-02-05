@@ -75,7 +75,7 @@ function SimpleCameraFeed({ className = "" }) {
         className="w-full h-full object-cover"
       />
       {!isStreaming && (
-        <div className="absolute top-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
+        <div className="absolute top-2 left-2 text-white text-[8px] bg-black/50 px-2 py-1 rounded">
           📷 Starting camera...
         </div>
       )}

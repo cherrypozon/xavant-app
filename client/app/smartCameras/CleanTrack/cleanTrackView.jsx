@@ -1,5 +1,6 @@
 'use client'
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useAppSelector } from '@/app/store/hooks';
 import SpeedDialCard from '@/app/components/SpeedDialCard/main';
 import { Shield, X } from 'lucide-react';
 import ZoomableVideo from '@/app/components/ZoomableVideo/main';
@@ -8,21 +9,53 @@ import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamer
 import { COCO_CLASSES } from '@/app/constants/modelClasses';
 
 const CleanTrack = () => {
-  const dropdownFields = ['Area', 'Item', 'Category', 'Priority', 'Status']
+  const { data } = useAppSelector((state) => state.smartCameras);
+  const cleanTrackData = data?.smart_cameras?.clean_track;
+  const cameraFeeds = data?.smart_cameras?.camera_feeds;
 
-  const monitoredPlaces = [
-    { id: 1, streamUrl: 'sampleImage1.png', alt: '4F Hallway B' },
-    { id: 2, streamUrl: 'sampleImage2.png', alt: 'Indoor Pool' },
-    { id: 3, streamUrl: 'sampleImage3.png', alt: 'Main Reception' },
-    { id: 4, streamUrl: 'sampleImage4.png', alt: 'Outdoor Pool' },
-    { id: 5, streamUrl: 'sampleImage5.png', alt: 'More' },
-  ]
+  // Get dropdown fields from mock data or use defaults
+  const dropdownFields = useMemo(() => {
+    if (cleanTrackData) {
+      return ['Area', 'Item', 'Category', 'Priority', 'Status'];
+    }
+    return ['Area', 'Item', 'Category', 'Priority', 'Status'];
+  }, [cleanTrackData]);
 
-  const tableRows = [
-    { area: 'North Hall B', item: 'Towels', category: 'Urgent', status: 'Assigned', remarks: 'Multiple towels and some...' },
-    { area: 'Indoor Pool', item: 'Wet floor', category: 'Non-Urgent', status: 'Assigned', remarks: 'Wet floor, accident risk' },
-    { area: 'Elevator Hall A', item: 'Bellman cart', category: 'Non-Urgent', status: 'Assigned', remarks: 'Unused cart for return...' },
-  ]
+  // Get monitored places from camera feeds or use defaults
+  const monitoredPlaces = useMemo(() => {
+    if (cameraFeeds) {
+      return cameraFeeds.slice(0, 5).map((feed, idx) => ({
+        id: idx + 1,
+        streamUrl: `sampleImage${idx + 1}.png`,
+        alt: feed.location
+      }));
+    }
+    return [
+      { id: 1, streamUrl: 'sampleImage1.png', alt: '4F Hallway B' },
+      { id: 2, streamUrl: 'sampleImage2.png', alt: 'Indoor Pool' },
+      { id: 3, streamUrl: 'sampleImage3.png', alt: 'Main Reception' },
+      { id: 4, streamUrl: 'sampleImage4.png', alt: 'Outdoor Pool' },
+      { id: 5, streamUrl: 'sampleImage5.png', alt: 'More' },
+    ];
+  }, [cameraFeeds]);
+
+  // Get table rows from mock data or use defaults
+  const tableRows = useMemo(() => {
+    if (cleanTrackData?.tasks) {
+      return cleanTrackData.tasks.map(task => ({
+        area: task.area,
+        item: task.item,
+        category: task.category,
+        status: task.status,
+        remarks: task.remarks
+      }));
+    }
+    return [
+      { area: 'North Hall B', item: 'Towels', category: 'Urgent', status: 'Assigned', remarks: 'Multiple towels and some...' },
+      { area: 'Indoor Pool', item: 'Wet floor', category: 'Non-Urgent', status: 'Assigned', remarks: 'Wet floor, accident risk' },
+      { area: 'Elevator Hall A', item: 'Bellman cart', category: 'Non-Urgent', status: 'Assigned', remarks: 'Unused cart for return...' },
+    ];
+  }, [cleanTrackData]);
   return (
     <div className="space-y-6 mb-8">
       {/* First Row - Live Feed */}

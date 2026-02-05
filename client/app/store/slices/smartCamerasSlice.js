@@ -13,7 +13,7 @@ const initialState = {
   cleanTrackTasks: [],
   peopleCounterData: null,
   isProcessing: false,
-  isLoading: false,
+  isLoading: true, // Start as true so skeleton shows before fetch starts
   error: null,
 };
 

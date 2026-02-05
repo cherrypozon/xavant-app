@@ -1,5 +1,6 @@
 'use client'
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useAppSelector } from '@/app/store/hooks'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import { Shield } from 'lucide-react'
 import LiveFeed from '@/app/components/LiveFeedCamera/main';
@@ -8,14 +9,29 @@ import { COCO_CLASSES } from '@/app/constants/modelClasses';
 import SimpleCameraFeed from '@/app/components/LiveFeedCamera/noneDetectionCamera';
 
 const SafeKeep = () => {
-  //update this part when actual integration happen
-  const monitoredPlaces = [
-    { name: "4F Hallway B", streamUrl: "sampleImage3.png" },
-    { name: "Indoor Pool", streamUrl: "sampleImage4.png" },
-    { name: "Main Reception", streamUrl: "sampleImage5.png" },
-    { name: "Outdoor Pool", streamUrl: "sampleImage6.png" },
-    { name: "North Entrance", streamUrl: "sampleImage7.png" },
-  ];
+  const { data } = useAppSelector((state) => state.smartCameras);
+  const safeKeepData = data?.smart_cameras?.safe_keep;
+  const cameraFeeds = data?.smart_cameras?.camera_feeds;
+
+  // Get current alert from mock data
+  const currentAlert = safeKeepData?.alerts?.[0];
+
+  // Get monitored places from camera feeds or use defaults
+  const monitoredPlaces = useMemo(() => {
+    if (cameraFeeds) {
+      return cameraFeeds.slice(0, 5).map((feed, idx) => ({
+        name: feed.location,
+        streamUrl: `sampleImage${idx + 3}.png`
+      }));
+    }
+    return [
+      { name: "4F Hallway B", streamUrl: "sampleImage3.png" },
+      { name: "Indoor Pool", streamUrl: "sampleImage4.png" },
+      { name: "Main Reception", streamUrl: "sampleImage5.png" },
+      { name: "Outdoor Pool", streamUrl: "sampleImage6.png" },
+      { name: "North Entrance", streamUrl: "sampleImage7.png" },
+    ];
+  }, [cameraFeeds]);
   return (
     <div className="space-y-6 mb-8">
       {/* First Row - Large Empty Card */}
@@ -41,15 +57,15 @@ const SafeKeep = () => {
           <div className="flex flex-col items-start gap-3 pr-8">
             <div className='flex gap-3'>
               <img src="alertSign.svg" alt="alert notification" />
-              <p className='text-[#FF3737] text-sm font-medium'>ALERT: Unattended Item</p>
+              <p className='text-[#FF3737] text-sm font-medium'>ALERT: {currentAlert?.type || 'Unattended Item'}</p>
             </div>
             <div className='flex justify-between items-center w-full'>
-              <p className='text-[12px] font-medium'>Item: Bag</p>
-              <p className='text-[12px] font-medium'>ITime: 9:15</p>
+              <p className='text-[12px] font-medium'>Item: {currentAlert?.item || 'Bag'}</p>
+              <p className='text-[12px] font-medium'>Time: {currentAlert?.detection_time || '9:15'}</p>
               <p className="text-[12px] font-medium">
                 Status:
                 <span className="ml-2 px-3 py-1 rounded-[15px] border-[1.5px] border-[#FF3737A6] inline-flex items-center gap-2 text-[#FF3737]">
-                  Not Assigned
+                  {currentAlert?.status || 'Not Assigned'}
                   <span>
                     <img src="dropdownIcon.svg" alt="dropdown icon" />
                   </span>
@@ -58,7 +74,7 @@ const SafeKeep = () => {
             </div>
             <div className='grid grid-cols-3 grid-rows-1 gap-4'>
               <p className="font-medium text-[12px]">Smart Sensing <span className='absolute'><img src="staffingIcon.svg" alt="" /></span></p>
-              <p className='text-[12px] col-span-2'>An unattended bag has been detected in North Hallway B for the past 36 minutes.</p>
+              <p className='text-[12px] col-span-2'>{currentAlert?.description || 'An unattended bag has been detected in North Hallway B for the past 36 minutes.'}</p>
             </div>
             <p className='text-[#A6A6A6] text-[12px]'>Notes</p>
             <textarea name="text-area" id="text-area"
