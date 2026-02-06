@@ -1,5 +1,6 @@
 // In-memory storage for people count (resets on cold start)
 let currentPoolOccupancy = 0;
+let lastUpdated = null;
 
 // GET - Returns dashboard data with current pool occupancy
 export async function GET() {
@@ -12,21 +13,24 @@ export async function GET() {
               pool: {
                 name: "Pool",
                 optimal_occupancy: 10,
-                current_occupancy: currentPoolOccupancy
+                current_occupancy: currentPoolOccupancy,
+                last_updated_time: lastUpdated
               }
             },
             {
               gym: {
                 name: "Gym",
                 optimal_occupancy: 30,
-                current_occupancy: 25
+                current_occupancy: 25,
+                last_updated_time: lastUpdated
               }
             },
             {
               restaurant: {
                 name: "Restaurant",
                 optimal_occupancy: 50,
-                current_occupancy: 40
+                current_occupancy: 40,
+                last_updated_time: lastUpdated
               }
             }
           ]
@@ -62,8 +66,9 @@ export async function POST(request) {
     }
 
     currentPoolOccupancy = body.count;
+    lastUpdated = new Date().toISOString();
 
-    console.log('[PeopleCount API] Pool occupancy updated:', currentPoolOccupancy);
+    console.log('[PeopleCount API] Pool occupancy updated:', currentPoolOccupancy, 'at', lastUpdated);
 
     return Response.json({
       success: true,
