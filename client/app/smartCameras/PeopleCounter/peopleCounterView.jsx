@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useAppSelector } from '@/app/store/hooks'
 import SpeedDialCard from '@/app/components/SpeedDialCard/main'
 import TrafficStatus from '@/app/components/TrafficStatus/main'
@@ -17,6 +17,33 @@ const PeopleCounterView = () => {
   const speedDialData = data?.smart_cameras?.speed_dial;
   
   const [currentPeopleCount, setCurrentPeopleCount] = useState(0)
+  const lastPostedCount = useRef(null)
+
+  // POST people count to API every 5 seconds (only if changed)
+  useEffect(() => {
+    const postCount = async () => {
+      if (lastPostedCount.current === currentPeopleCount) return;
+
+      try {
+        await fetch('/api/people-count', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            count: currentPeopleCount,
+            location: 'North Entrance'
+          })
+        });
+        lastPostedCount.current = currentPeopleCount;
+      } catch (error) {
+        console.error('[PeopleCounter] Failed to post count:', error);
+      }
+    };
+
+    postCount(); // Post immediately on change
+    const interval = setInterval(postCount, 5000); // Then every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [currentPeopleCount])
 
   // Calculate traffic status based on current count
   const getTrafficStatus = (count) => {
